@@ -8,7 +8,30 @@ from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
 
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:8081"
+
+USERS = [
+    ("student01", "Test123!"),
+    ("student02", "Test123!"),
+    ("student03", "Test123!"),
+    ("student04", "Test123!"),
+    ("student05", "Test123!"),
+    ("student06", "Test123!"),
+    ("student07", "Test123!"),
+    ("student08", "Test123!"),
+    ("student09", "Test123!"),
+    ("student10", "Test123!"),
+    ("student11", "Test123!"),
+    ("student12", "Test123!"),
+    ("student13", "Test123!"),
+    ("student14", "Test123!"),
+    ("student15", "Test123!"),
+    ("student16", "Test123!"),
+    ("student17", "Test123!"),
+    ("student18", "Test123!"),
+    ("student19", "Test123!"),
+    ("student20", "Test123!"),
+]
     
 def create_driver(incognito: bool = True, start_maximized: bool = True):
     options = Options()

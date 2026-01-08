@@ -13,5 +13,8 @@
         if (window.MetrikaModule) {
             window.MetrikaModule.setup(counterId);
         }
+        if (window.MetrikaVideo) {
+            window.MetrikaVideo.setup(counterId);
+        }
     });
 })(window);

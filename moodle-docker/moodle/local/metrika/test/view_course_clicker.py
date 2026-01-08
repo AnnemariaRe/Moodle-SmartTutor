@@ -7,38 +7,15 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
 from selenium_common import (
-    BASE_URL, create_driver, login, logout,
-    open_course, get_course_modules, get_course_sections,
+    USERS, BASE_URL, create_driver, login, logout,
+    enrol_to_course, open_course, get_course_modules, get_course_sections,
     open_random_sections
 )
 
-COURSE_ID = 3
-USERS = [
-    ("student01", "Test123!"),
-    ("student02", "Test123!"),
-    ("student03", "Test123!"),
-    ("student04", "Test123!"),
-    ("student05", "Test123!"),
-    ("student06", "Test123!"),
-    ("student07", "Test123!"),
-    ("student08", "Test123!"),
-    ("student09", "Test123!"),
-    ("student10", "Test123!"),
-    ("student11", "Test123!"),
-    ("student12", "Test123!"),
-    ("student13", "Test123!"),
-    ("student14", "Test123!"),
-    ("student15", "Test123!"),
-    ("student16", "Test123!"),
-    ("student17", "Test123!"),
-    ("student18", "Test123!"),
-    ("student19", "Test123!"),
-    ("student20", "Test123!"),
-]
-
+COURSE_ID = 4
 MAX_MODULES_PER_USER = 10
 MAX_SECTIONS_PER_USER = 3          # сколько секций открывает студент
-QUIZ_ATTEMPTS_FRACTION = 1      # доля quiz-модулей, по которым делаем попытку
+QUIZ_ATTEMPTS_FRACTION = 2      # доля quiz-модулей, по которым делаем попытку
 
 # Диапазоны «времени на модуле», сек
 MODULE_VIEW_MIN_SEC = 1.0
@@ -106,46 +83,20 @@ def browse_random_modules_and_attempts(driver, module_links):
         time.sleep(attempt_time)
 
 
-def enrol_to_course(driver, course_id):
-    """Самозапись на курс через /enrol/index.php?id=COURSE_ID."""
-    url = f"{BASE_URL}/enrol/index.php?id={course_id}"
-    print("Пробуем самозапись:", url)
-    driver.get(url)
-    time.sleep(2)
-
-    try:
-        button = driver.find_element(
-            By.CSS_SELECTOR,
-            "input.btn.btn-primary[type='submit'][id='id_submitbutton']"
-        )
-        label = button.get_attribute("value")
-        print("Найдена кнопка Enrol me:", label)
-        button.click()
-        time.sleep(3)
-    except NoSuchElementException:
-        print("Кнопка Enrol me не найдена (возможно, студент уже записан)")
-
-
 def main():
     driver = create_driver()
     try:
-        # каждый запуск берём случайных 5 студентов
-        users_sample = random.sample(USERS, 5)
-
-        for username, password in users_sample:
+        for username, password in random.sample(USERS, 5):
             print(f"\n=== Логин под {username} ===")
             login(driver, username, password)
-
-            enrol_to_course(driver, COURSE_ID)  # при необходимости включишь
-
+            enrol_to_course(driver, COURSE_ID)
             open_course(driver, COURSE_ID)
-
+            
             module_links = get_course_modules(driver)
             section_links = get_course_sections(driver)
-
-            open_random_sections(driver, section_links)
+            open_random_sections(driver, section_links, MAX_SECTIONS_PER_USER)
             browse_random_modules_and_attempts(driver, module_links)
-
+            
             logout(driver)
             time.sleep(2)
     finally:

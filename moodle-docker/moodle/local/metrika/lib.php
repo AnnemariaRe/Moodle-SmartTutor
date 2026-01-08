@@ -46,6 +46,7 @@ function local_metrika_before_http_headers() {
     $PAGE->requires->js(new moodle_url('/local/metrika/js/init.js'));
     $PAGE->requires->js(new moodle_url('/local/metrika/js/course.js'));
     $PAGE->requires->js(new moodle_url('/local/metrika/js/module.js'));
+    $PAGE->requires->js(new moodle_url('/local/metrika/js/video.js'));
     $PAGE->requires->js(new moodle_url('/local/metrika/metrika.js'));
     $PAGE->requires->js(new moodle_url('/local/metrika/js/path.js'));
 }
