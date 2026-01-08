@@ -3,6 +3,7 @@ package ru.moodle.metrics.ymetrica.service
 import ru.moodle.metrics.ymetrica.vo.CourseEventDto
 import ru.moodle.metrics.ymetrica.vo.CoursePathSummary
 import ru.moodle.metrics.ymetrica.vo.CourseTime
+import ru.moodle.metrics.ymetrica.vo.CourseVideoMetrics
 import ru.moodle.metrics.ymetrica.vo.ModuleProgress
 
 interface YandexMetricaService {
@@ -34,4 +35,10 @@ interface YandexMetricaService {
         dateFrom: String,
         dateTo: String
     ): CoursePathSummary
+
+    fun getCourseVideoMetrics(
+        courseId: Long,
+        dateFrom: String,
+        dateTo: String
+    ): CourseVideoMetrics
 }

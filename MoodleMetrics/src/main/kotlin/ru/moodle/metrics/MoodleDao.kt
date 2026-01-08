@@ -17,8 +17,8 @@ class MoodleDao(
         val sql = """
         SELECT cmc.coursemoduleid AS cmid,
                cmc.userid        AS userid
-        FROM mdl_course_modules_completion cmc
-        JOIN mdl_course_modules cm
+        FROM m_course_modules_completion cmc
+        JOIN m_course_modules cm
           ON cm.id = cmc.coursemoduleid
         WHERE cm.course = :courseId
           AND cmc.completionstate = 1

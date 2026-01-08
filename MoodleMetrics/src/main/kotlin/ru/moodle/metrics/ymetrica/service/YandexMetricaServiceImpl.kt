@@ -13,12 +13,14 @@ import ru.moodle.metrics.ymetrica.vo.BacktrackedModule
 import ru.moodle.metrics.ymetrica.vo.CourseEventDto
 import ru.moodle.metrics.ymetrica.vo.CoursePathSummary
 import ru.moodle.metrics.ymetrica.vo.CourseTime
+import ru.moodle.metrics.ymetrica.vo.CourseVideoMetrics
 import ru.moodle.metrics.ymetrica.vo.MetricaTableResponse
 import ru.moodle.metrics.ymetrica.vo.ModuleProgress
 import ru.moodle.metrics.ymetrica.vo.ModuleTime
 import ru.moodle.metrics.ymetrica.vo.ParsedEventKey
 import ru.moodle.metrics.ymetrica.vo.StudentPath
 import ru.moodle.metrics.ymetrica.vo.StudentStep
+import ru.moodle.metrics.ymetrica.vo.VideoModuleStats
 
 @Service
 class YandexMetricaServiceImpl(
@@ -54,51 +56,39 @@ class YandexMetricaServiceImpl(
             dateTo = dateTo
         )
 
-        val completedRaw = moodleService.getActivityCompletionByCourse(courseId)
+        val completedRaw: Map<String, Set<Long>> =
+            moodleService.getActivityCompletionByCourse(courseId)
+                .entries
+                .associate { (cmId, userIds) -> cmId.toString() to userIds }
 
         val enrolledUsers: Long = moodleService.getEnrolledUsers(courseId).size.toLong()
         val moduleIds = (openedRaw.keys + completedRaw.keys).toSet()
-
-        val courseContent = moodleService.getCourseContents(courseId)
-        val modules = courseContent
+        val modules = moodleService.getCourseContents(courseId)
             .flatMap { it.modules }
             .associateBy { it.id }
+
+        fun calculatePercent(count: Long) = if (enrolledCount > 0) count.toDouble() * 100.0 / enrolledCount else 0.0
 
         return moduleIds
             .map { moduleId ->
                 val openedUsersSet = openedRaw[moduleId].orEmpty()
                 val completedUsersSet = completedRaw[moduleId].orEmpty()
-
-                // считаем только тех, кто реально записан на курс
                 val openedUsers = openedUsersSet.intersect(enrolledUserIds).size.toLong()
                 val completedUsers = completedUsersSet.intersect(enrolledUserIds).size.toLong()
-                val backMoves = backMovesByModule[moduleId] ?: 0L
-                val module = modules[moduleId]
-                val openedPercent = if (enrolledCount > 0) openedUsers.toDouble() * 100.0 / enrolledCount else 0.0
-                val completedPercent = getCourseCompletionPercent(courseId)
+                val module = modules[moduleId.toLong()]
 
                 ModuleProgress(
                     moduleId = moduleId.toString(),
                     moduleName = module?.name,
                     openedUsers = openedUsers,
                     enrolledUsers = enrolledUsers,
-                    openedPercent = openedPercent,
+                    openedPercent = calculatePercent(openedUsers),
                     completedUsers = completedUsers,
-                    completedPercent = completedPercent,
-                    backMoves = backMoves
+                    completedPercent = calculatePercent(completedUsers),
+                    backMoves = backMovesByModule[moduleId] ?: 0L
                 )
             }
             .sortedBy { it.moduleId.toLongOrNull() ?: Long.MAX_VALUE }
-    }
-
-    fun getCourseCompletionPercent(courseId: Long): Double {
-        val enrolled = moodleService.getEnrolledUsers(courseId)
-        if (enrolled.isEmpty()) return 0.0
-
-        val statuses = moodleService.getCourseCompletionStatuses(courseId)
-        val completedCount = statuses.count { it.isCompleted }
-
-        return completedCount.toDouble() * 100.0 / enrolled.size
     }
 
     private fun getBackMovesByModule(
@@ -106,37 +96,22 @@ class YandexMetricaServiceImpl(
         dateFrom: String,
         dateTo: String
     ): Map<String, Long> {
-
-        val events = getCourseEvents(courseId, dateFrom, dateTo)
-
-        // Берём только шаги пути с userId и moduleId
-        val stepEvents = events.filter {
-            val p = it.parsed
-            p.step != null && p.moduleId != null && p.userId != null
-        }
+        val stepEvents = getCourseEvents(courseId, dateFrom, dateTo)
+            .filter { it.parsed.step != null && it.parsed.moduleId != null && it.parsed.userId != null }
 
         if (stepEvents.isEmpty()) return emptyMap()
 
-        // Группируем по пользователю и сортируем шаги
-        val byUser = stepEvents.groupBy { it.parsed.userId }
-
         val backMoves = mutableMapOf<String, Long>()
-
-        byUser.values.forEach { userEvents ->
-            val sorted = userEvents.sortedBy { it.parsed.step }
-
+        stepEvents.groupBy { it.parsed.userId }.values.forEach { userEvents ->
             val visited = mutableSetOf<String>()
-            sorted.forEach { e ->
-                val p = e.parsed
-                val mid = p.moduleId!!
-                val movedBack = visited.contains(mid)   // модуль уже был ранее в пути
-                if (movedBack) {
-                    backMoves[mid] = (backMoves[mid] ?: 0L) + 1L
+            userEvents.sortedBy { it.parsed.step }.forEach { event ->
+                val moduleId = event.parsed.moduleId!!
+                if (visited.contains(moduleId)) {
+                    backMoves[moduleId] = (backMoves[moduleId] ?: 0L) + 1L
                 }
-                visited.add(mid)
+                visited.add(moduleId)
             }
         }
-
         return backMoves
     }
 
@@ -145,46 +120,39 @@ class YandexMetricaServiceImpl(
         dateFrom: String,
         dateTo: String
     ): List<CourseEventDto> {
-        val url = StringBuilder("https://api-metrika.yandex.net/stat/v1/data")
-            .append("?ids=$counterId")
-            .append("&metrics=ym:s:users")
-            .append("&dimensions=ym:s:paramsLevel1,ym:s:paramsLevel2")
-            .append("&date1=$dateFrom")
-            .append("&date2=$dateTo")
-            .append("&limit=10000")
-            .toString()
-
-        val headers = HttpHeaders().apply {
-            set("Authorization", "OAuth $oauthToken")
-        }
-
-        val entity = HttpEntity<Void>(headers)
-        val response = restTemplate.exchange(
-            url,
-            HttpMethod.GET,
-            entity,
-            String::class.java
-        )
-
-        val body = response.body ?: return emptyList()
-        val table: MetricaTableResponse = mapper.readValue(body)
+        val table = fetchMetricaData(dateFrom, dateTo) ?: return emptyList()
 
         return table.data.mapNotNull { row ->
             val dim1 = row.dimensions.getOrNull(0)?.name
             val dim2 = row.dimensions.getOrNull(1)?.name
-
             if (dim1 != "eventKey" || dim2.isNullOrBlank()) return@mapNotNull null
 
             val parsed = parseEventKey(dim2)
             if (parsed.courseId != courseId) return@mapNotNull null
 
-            val users = row.metrics.firstOrNull()?.toLong() ?: 0L
             CourseEventDto(
                 eventKey = dim2,
-                users = users,
+                users = row.metrics.firstOrNull()?.toLong() ?: 0L,
                 parsed = parsed
             )
         }
+    }
+
+    private fun fetchMetricaData(dateFrom: String, dateTo: String): MetricaTableResponse? {
+        val url = "https://api-metrika.yandex.net/stat/v1/data" +
+                "?ids=$counterId" +
+                "&metrics=ym:s:users" +
+                "&dimensions=ym:s:paramsLevel1,ym:s:paramsLevel2" +
+                "&date1=$dateFrom" +
+                "&date2=$dateTo" +
+                "&limit=10000"
+
+        val headers = HttpHeaders().apply { set("Authorization", "OAuth $oauthToken") }
+        val response = restTemplate.exchange(
+            url, HttpMethod.GET, HttpEntity<Void>(headers), String::class.java
+        )
+
+        return response.body?.let { mapper.readValue<MetricaTableResponse>(it) }
     }
 
     override fun getCourseTimeMetrics(
@@ -194,41 +162,29 @@ class YandexMetricaServiceImpl(
     ): CourseTime {
         val events = getCourseEvents(courseId, dateFrom, dateTo)
 
-        // 1. course_session: суммарное и среднее время в курсе
-        val courseSessions = events.filter { it.parsed.eventType == "course_session" }
-
-        val totalCourseTimeMs = courseSessions.sumOf { it.parsed.durationMs ?: 0L }
-
-        // здесь users – это «кол-во уникальных посетителей с таким eventKey»
-        val totalCourseUsers = courseSessions.sumOf { it.users }
-        val avgCourseTimePerUserMs =
-            if (totalCourseUsers > 0) totalCourseTimeMs / totalCourseUsers else null
-
-        // 2. module_session: среднее время по каждому модулю
-        val moduleSessions = events.filter {
-            it.parsed.eventType == "module_session" && it.parsed.moduleId != null
+        fun filterByEventType(type: String) = events.filter { it.parsed.eventType == type }
+        fun calculateAvgTime(sessions: List<CourseEventDto>): Long? {
+            val totalTime = sessions.sumOf { it.parsed.durationMs ?: 0L }
+            val totalUsers = sessions.sumOf { it.users }
+            return if (totalUsers > 0) totalTime / totalUsers else null
         }
 
-        val moduleTimeMap: Map<String, ModuleTime> =
-            moduleSessions
-                .groupBy { it.parsed.moduleId!! }
-                .mapValues { (_, rows) ->
-                    val totalDuration = rows.sumOf { it.parsed.durationMs ?: 0L }
-                    val totalUsers = rows.sumOf { it.users }
-                    val avg = if (totalUsers > 0) totalDuration / totalUsers else 0L
-                    ModuleTime(
-                        moduleId = rows.first().parsed.moduleId!!,
-                        avgTimeMs = avg
-                    )
-                }
+        val courseSessions = filterByEventType("course_session")
+        val totalCourseTimeMs = courseSessions.sumOf { it.parsed.durationMs ?: 0L }
 
-        // 3. first_activity_click: средняя задержка до первого клика
-        val firstClicks = events.filter { it.parsed.eventType == "first_activity_click" }
+        val totalCourseUsers = courseSessions.sumOf { it.users }
+        val avgCourseTimePerUserMs = if (totalCourseUsers > 0) totalCourseTimeMs / totalCourseUsers else null
 
-        val totalDelay = firstClicks.sumOf { it.parsed.delayMs ?: 0L }
-        val totalDelayUsers = firstClicks.sumOf { it.users }
-        val avgFirstInteractionDelayMs =
-            if (totalDelayUsers > 0) totalDelay / totalDelayUsers else null
+        val moduleTimeMap = filterByEventType("module_session")
+            .filter { it.parsed.moduleId != null }
+            .groupBy { it.parsed.moduleId!! }
+            .mapValues { (moduleId, rows) ->
+                val avg = calculateAvgTime(rows) ?: 0L
+                ModuleTime(moduleId = moduleId, avgTimeMs = avg)
+            }
+
+        val firstClicks = filterByEventType("first_activity_click")
+        val avgFirstInteractionDelayMs = calculateAvgTime(firstClicks)
 
         return CourseTime(
             courseId = courseId,
@@ -253,48 +209,21 @@ class YandexMetricaServiceImpl(
         dateFrom: String,
         dateTo: String
     ): Map<String, Set<Long>> {
-
-        val url = StringBuilder("https://api-metrika.yandex.net/stat/v1/data")
-            .append("?ids=$counterId")
-            .append("&metrics=ym:s:users")
-            .append("&dimensions=ym:s:paramsLevel1,ym:s:paramsLevel2")
-            .append("&date1=$dateFrom")
-            .append("&date2=$dateTo")
-            .append("&limit=10000")
-            .toString()
-
-        val headers = HttpHeaders().apply {
-            set("Authorization", "OAuth $oauthToken")
-        }
-
-        val entity = HttpEntity<Void>(headers)
-        val response = restTemplate.exchange(
-            url,
-            HttpMethod.GET,
-            entity,
-            String::class.java
-        )
-
-        val body = response.body ?: return emptyMap()
-        val table: MetricaTableResponse = mapper.readValue(body)
-
-        // moduleId -> set of userIds
+        val table = fetchMetricaData(dateFrom, dateTo) ?: return emptyMap()
         val result = mutableMapOf<String, MutableSet<Long>>()
 
         table.data.forEach { row ->
             val dim1 = row.dimensions.getOrNull(0)?.name
             val dim2 = row.dimensions.getOrNull(1)?.name
-
             if (dim1 != "eventKey" || dim2.isNullOrBlank()) return@forEach
 
             val parsed = parseEventKey(dim2)
-
             if (parsed.courseId != courseId || parsed.activityType != activityType) return@forEach
 
             val moduleId = parsed.moduleId ?: return@forEach
             val userId = parsed.userId ?: return@forEach
 
-            result.computeIfAbsent(moduleId) { mutableSetOf() }.add(userId)
+            result.getOrPut(moduleId) { mutableSetOf() }.add(userId)
         }
 
         return result
@@ -302,51 +231,9 @@ class YandexMetricaServiceImpl(
 
     /**
      * Разбор eventKey="courseId=8;moduleId=32;activityType=view;eventType=section_view;sectionId=1"
+     * или "courseId=8;moduleId=32;mediaId=123;mediaType=video;eventType=video_watch;watchPercent=50"
      */
-    private fun parseEventKey(value: String): ParsedEventKey {
-        val parts = value.split(';')
-        var courseId: Long? = null
-        var moduleId: String? = null
-        var activityType: String? = null
-        var eventType: String? = null
-        var durationMs: Long? = null
-        var delayMs: Long? = null
-        var step: Int? = null
-        var prevModuleId: String? = null
-        var stepDurationMs: Long? = null
-        var userId: Long? = null
-
-        for (p in parts) {
-            val kv = p.split('=', limit = 2)
-            if (kv.size != 2) continue
-            val key = kv[0]
-            val v = kv[1]
-            when (key) {
-                "courseId" -> courseId = v.toLongOrNull()
-                "moduleId" -> moduleId = v
-                "activityType" -> activityType = v
-                "eventType" -> eventType = v
-                "durationMs" -> durationMs = v.toLongOrNull()
-                "delayMs" -> delayMs = v.toLongOrNull()
-                "step" -> step = v.toIntOrNull()
-                "prevModuleId" -> prevModuleId = v
-                "stepDurationMs" -> stepDurationMs = v.toLongOrNull()
-                "userId" -> userId = v.toLongOrNull()
-            }
-        }
-        return ParsedEventKey(
-            courseId,
-            moduleId,
-            activityType,
-            eventType,
-            durationMs,
-            delayMs,
-            step,
-            prevModuleId,
-            stepDurationMs,
-            userId
-        )
-    }
+    private fun parseEventKey(value: String): ParsedEventKey = ParsedEventKey.parse(value)
 
     override fun getCoursePathSummary(
         courseId: Long,
@@ -355,9 +242,7 @@ class YandexMetricaServiceImpl(
     ): CoursePathSummary {
         val events = getCourseEvents(courseId, dateFrom, dateTo)
 
-        // Берём только шаги пути
-        val stepEvents = events
-            .filter { it.parsed.step != null && it.parsed.moduleId != null }
+        val stepEvents = events.filter { it.parsed.step != null && it.parsed.moduleId != null }
 
         if (stepEvents.isEmpty()) {
             return CoursePathSummary(courseId)
@@ -371,7 +256,7 @@ class YandexMetricaServiceImpl(
 
         eventsByUser.forEach { (userId, userEvents) ->
             val stepsForUser = userEvents
-                .sortedBy { it.parsed.step }   // по step
+                .sortedBy { it.parsed.step }
                 .map { event ->
                     val p = event.parsed
                     val movedBack = p.prevModuleId != null && p.prevModuleId != p.moduleId
@@ -428,6 +313,165 @@ class YandexMetricaServiceImpl(
             totalBackMoves = totalBackMoves,
             avgBackMovesPerStudent = avgBackMovesPerStudent,
             topBacktrackedModules = backtrackedModules
+        )
+    }
+
+    override fun getCourseVideoMetrics(
+        courseId: Long,
+        dateFrom: String,
+        dateTo: String
+    ): CourseVideoMetrics {
+        val events = getCourseEvents(courseId, dateFrom, dateTo)
+
+        // Фильтруем только видео-события
+        val videoEvents = events.filter {
+            val eventType = it.parsed.eventType
+            eventType != null && eventType.startsWith("video_")
+        }
+
+        if (videoEvents.isEmpty()) {
+            return CourseVideoMetrics(courseId)
+        }
+
+        val courseContent = moodleService.getCourseContents(courseId)
+        val modules = courseContent
+            .flatMap { it.modules }
+            .associateBy { it.id }
+
+        val isValidModuleId: (String?) -> Boolean = { it?.toLongOrNull() != null }
+        val eventsByModuleAndMedia = videoEvents
+            .filter { isValidModuleId(it.parsed.moduleId) }
+            .groupBy { Pair(it.parsed.moduleId!!, it.parsed.mediaId ?: "") }
+
+        val moduleStats = mutableListOf<VideoModuleStats>()
+
+        eventsByModuleAndMedia.forEach { (moduleMediaPair, moduleEvents) ->
+            val moduleId = moduleMediaPair.first
+            val mediaId = moduleMediaPair.second
+
+            val uniqueUsers = moduleEvents
+                .mapNotNull { it.parsed.userId }
+                .toSet()
+
+            // События video_watch с watchPercent
+            val watchEvents = moduleEvents.filter {
+                it.parsed.eventType == "video_watch" && it.parsed.watchPercent != null
+            }
+
+            // События video_stats с финальной статистикой
+            val statsEvents = moduleEvents.filter {
+                it.parsed.eventType == "video_stats"
+            }
+
+            // События video_pause
+            val pauseEvents = moduleEvents.filter {
+                it.parsed.eventType == "video_pause"
+            }
+
+            // События video_seek
+            val seekEvents = moduleEvents.filter {
+                it.parsed.eventType == "video_seek"
+            }
+
+            // Подсчитываем пользователей по milestone'ам
+            fun countUsersByPercent(percent: Int): Long {
+                val users = if (watchEvents.isNotEmpty()) {
+                    watchEvents.filter { it.parsed.watchPercent != null && it.parsed.watchPercent!! >= percent }
+                        .mapNotNull { it.parsed.userId }.toSet()
+                } else if (percent == 100) {
+                    statsEvents.filter { it.parsed.finalPercent != null && it.parsed.finalPercent!! >= 100 }
+                        .mapNotNull { it.parsed.userId }.toSet()
+                } else {
+                    emptySet()
+                }
+                return users.size.toLong()
+            }
+
+            val startedUsers = if (watchEvents.isNotEmpty()) {
+                countUsersByPercent(0)
+            } else {
+                statsEvents.mapNotNull { it.parsed.userId }.toSet().size.toLong()
+            }
+            val watched25Users = countUsersByPercent(25)
+            val watched50Users = countUsersByPercent(50)
+            val watched75Users = countUsersByPercent(75)
+            val watched100Users = countUsersByPercent(100)
+
+            fun <T : Number> averageFromStats(extractor: (ParsedEventKey) -> T?): Double? {
+                val values = statsEvents.mapNotNull { extractor(it.parsed) }
+                return if (values.isNotEmpty()) values.map { it.toDouble() }.average() else null
+            }
+
+            fun <T : Number> averageFromStatsAsLong(extractor: (ParsedEventKey) -> T?): Long? {
+                return averageFromStats(extractor)?.toLong()
+            }
+
+            fun fallbackAverage(statsValues: List<Double>, eventCount: Int): Double? {
+                return if (statsValues.isNotEmpty()) {
+                    statsValues.average()
+                } else if (eventCount > 0 && uniqueUsers.isNotEmpty()) {
+                    eventCount.toDouble() / uniqueUsers.size
+                } else null
+            }
+
+            val avgWatchPercent = averageFromStats { it.finalPercent }
+                ?: watchEvents.mapNotNull { it.parsed.watchPercent }.takeIf { it.isNotEmpty() }?.average()
+
+            val avgPauseCount = fallbackAverage(
+                statsEvents.mapNotNull { it.parsed.pauseCount?.toDouble() },
+                pauseEvents.size
+            )
+
+            val avgSeekCount = fallbackAverage(
+                statsEvents.mapNotNull { it.parsed.seekCount?.toDouble() },
+                seekEvents.size
+            )
+
+            val avgSeekBackwardCount = fallbackAverage(
+                statsEvents.mapNotNull { it.parsed.seekBackward?.toDouble() },
+                seekEvents.count { it.parsed.seekBackward == 1 }
+            )
+
+            val avgWatchTimeMs = averageFromStatsAsLong { it.totalWatchTime }
+            val avgSegment025TimeMs = averageFromStatsAsLong { it.segment025Time }
+            val avgSegment2550TimeMs = averageFromStatsAsLong { it.segment2550Time }
+            val avgSegment5075TimeMs = averageFromStatsAsLong { it.segment5075Time }
+            val avgSegment75100TimeMs = averageFromStatsAsLong { it.segment75100Time }
+
+            val module = moduleId.toLongOrNull()?.let { modules[it] }
+            moduleStats.add(
+                VideoModuleStats(
+                    moduleId = moduleId,
+                    moduleName = module?.name,
+                    mediaId = mediaId.takeIf { it.isNotEmpty() },
+                    mediaType = moduleEvents.firstOrNull()?.parsed?.mediaType,
+                    startedUsers = if (startedUsers > 0) startedUsers else uniqueUsers.size.toLong(),
+                    watched25Users = watched25Users,
+                    watched50Users = watched50Users,
+                    watched75Users = watched75Users,
+                    watched100Users = watched100Users,
+                    avgWatchPercent = avgWatchPercent,
+                    avgPauseCount = avgPauseCount,
+                    avgSeekCount = avgSeekCount,
+                    avgSeekBackwardCount = avgSeekBackwardCount,
+                    avgWatchTimeMs = avgWatchTimeMs,
+                    avgSegment025TimeMs = avgSegment025TimeMs,
+                    avgSegment2550TimeMs = avgSegment2550TimeMs,
+                    avgSegment5075TimeMs = avgSegment5075TimeMs,
+                    avgSegment75100TimeMs = avgSegment75100TimeMs
+                )
+            )
+        }
+
+        val validModuleStats = moduleStats.filter { it.moduleId.toLongOrNull() != null }
+        val validVideoEvents = videoEvents.filter { isValidModuleId(it.parsed.moduleId) }
+        val totalVideoViewers = validVideoEvents.mapNotNull { it.parsed.userId }.toSet().size.toLong()
+
+        return CourseVideoMetrics(
+            courseId = courseId,
+            modules = validModuleStats.sortedBy { it.moduleId.toLongOrNull() ?: Long.MAX_VALUE },
+            totalVideoModules = validModuleStats.size,
+            totalVideoViewers = totalVideoViewers
         )
     }
 

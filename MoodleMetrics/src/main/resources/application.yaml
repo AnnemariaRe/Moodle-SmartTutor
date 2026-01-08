@@ -1,5 +1,5 @@
 moodle:
-  base-url: http://localhost:8000/
+  base-url: http://localhost:8081/
   token: ${MOODLE_TOKEN}
 
 metrica:

@@ -8,6 +8,7 @@ import ru.moodle.metrics.ymetrica.service.YandexMetricaService
 import ru.moodle.metrics.ymetrica.vo.CourseEventDto
 import ru.moodle.metrics.ymetrica.vo.CoursePathSummary
 import ru.moodle.metrics.ymetrica.vo.CourseTime
+import ru.moodle.metrics.ymetrica.vo.CourseVideoMetrics
 import ru.moodle.metrics.ymetrica.vo.ModuleProgress
 
 @RestController
@@ -87,6 +88,27 @@ class ProgressController(
         @RequestParam(defaultValue = "today") dateTo: String
     ): CoursePathSummary {
         return metricaService.getCoursePathSummary(courseId, dateFrom, dateTo)
+    }
+
+    /**
+     * Возвращает видео-метрики для выбранного курса за указанный период.
+     *
+     * В ответе содержатся агрегированные метрики по просмотру видео/аудио:
+     * процент досмотра по milestone'ам (25%, 50%, 75%, 100%), статистика по паузам,
+     * перемоткам, времени просмотра по сегментам для каждого модуля с медиа-контентом.
+     *
+     * @param courseId идентификатор курса в Moodle
+     * @param dateFrom начало периода, за который считаются метрики
+     * @param dateTo конец периода, за который считаются метрики
+     * @return объект {@link CourseVideoMetrics}, содержащий сводные видео-метрики курса
+     */
+    @GetMapping("/api/courses/{courseId}/video")
+    fun getCourseVideoMetrics(
+        @PathVariable courseId: Long,
+        @RequestParam(defaultValue = "30daysAgo") dateFrom: String,
+        @RequestParam(defaultValue = "today") dateTo: String
+    ): CourseVideoMetrics {
+        return metricaService.getCourseVideoMetrics(courseId, dateFrom, dateTo)
     }
 
 }
