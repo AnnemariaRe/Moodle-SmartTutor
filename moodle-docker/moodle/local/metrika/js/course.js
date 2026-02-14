@@ -4,7 +4,6 @@
     function trackCourseSession(counterId, href, phpCourseId) {
         if (href.indexOf('/course/view.php') === -1) return;
 
-        // Сохраняем lastCourseId
         var cidFromUrl = Utils.getParam(href, 'id');
         var courseIdForStore = phpCourseId || cidFromUrl;
         if (courseIdForStore) {

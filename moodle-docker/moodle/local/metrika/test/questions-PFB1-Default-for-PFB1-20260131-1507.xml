@@ -1,0 +1,2289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+<!-- question: 0  -->
+  <question type="category">
+    <category>
+      <text>$course$/top/Default for Conditionals Review Quiz/Default for PFB1</text>
+    </category>
+    <info format="moodle_auto_format">
+      <text>The default category for questions shared in context 'PFB1'.</text>
+    </info>
+    <idnumber></idnumber>
+  </question>
+
+<!-- question: 51  -->
+  <question type="matching">
+    <name>
+      <text>Basic Boolean</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the result of the following comparisons?</p><pre>x = 42</pre><pre>y = 17<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <shuffleanswers>true</shuffleanswers>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <subquestion format="html">
+      <text><![CDATA[<pre>x &gt; y<br></pre>]]></text>
+      <answer>
+        <text>True</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>x &lt; y<br></pre>]]></text>
+      <answer>
+        <text>False</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text></text>
+      <answer>
+        <text>Correct</text>
+      </answer>
+    </subquestion>
+  </question>
+
+<!-- question: 85  -->
+  <question type="matching">
+    <name>
+      <text>Conditional Operators</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Please match the following symbols with their meaning in the example code below:</p><pre>if x __ y:</pre><pre>&nbsp;&nbsp;&nbsp; print(True)<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <shuffleanswers>true</shuffleanswers>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <subquestion format="html">
+      <text><![CDATA[<pre>&gt;<br></pre>]]></text>
+      <answer>
+        <text>greater than</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>&lt;<br></pre>]]></text>
+      <answer>
+        <text>less than</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>&gt;=<br></pre>]]></text>
+      <answer>
+        <text>greater than or equal to</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>&lt;=<br></pre>]]></text>
+      <answer>
+        <text>less than or equal to</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>==<br></pre>]]></text>
+      <answer>
+        <text>equals</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>!=<br></pre>]]></text>
+      <answer>
+        <text>not equal</text>
+      </answer>
+    </subquestion>
+  </question>
+
+<!-- question: 50  -->
+  <question type="matching">
+    <name>
+      <text>FizzBuzz Lite</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Match the correct output for each given set of values.</p><pre>if x &gt; y:<br>&nbsp;&nbsp;&nbsp; print("Fizz")<br><br>elif x &lt; y:<br>&nbsp;&nbsp;&nbsp; print("Buzz")<br><br>else:<br>&nbsp;&nbsp;&nbsp; print("FizzBuzz")<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <shuffleanswers>true</shuffleanswers>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <subquestion format="html">
+      <text><![CDATA[<pre>x = 4</pre><pre>y = 8<br></pre>]]></text>
+      <answer>
+        <text>Buzz</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>x = 22</pre><pre>y = 2<br></pre>]]></text>
+      <answer>
+        <text>Fizz</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>x = 99</pre><pre>y = 99<br></pre>]]></text>
+      <answer>
+        <text>FizzBuzz</text>
+      </answer>
+    </subquestion>
+  </question>
+
+<!-- question: 57  -->
+  <question type="matching">
+    <name>
+      <text>Function Types</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Please match the function definition with its "type".<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <shuffleanswers>true</shuffleanswers>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <subquestion format="html">
+      <text><![CDATA[<pre>def print_smiley()</pre><pre>&nbsp;&nbsp;&nbsp; print(":)")<br></pre>]]></text>
+      <answer>
+        <text>Send no value / Return no value</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>def get_smiley():</pre><pre>&nbsp;&nbsp;&nbsp; return ":)"<br></pre>]]></text>
+      <answer>
+        <text>Send no value / Return a value</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>def print_smiley(smiley):</pre><pre>&nbsp;&nbsp;&nbsp; print (smiley)<br></pre>]]></text>
+      <answer>
+        <text>Send a value / Return no value</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<p><pre>def get_smiley(emotion):</pre><pre>&nbsp;&nbsp;&nbsp; if emotion == "happy":<br>        return ":)"<br>    else:<br>        return ";)"<br></pre><br></p>]]></text>
+      <answer>
+        <text>Send a value / Return a value</text>
+      </answer>
+    </subquestion>
+  </question>
+
+<!-- question: 71  -->
+  <question type="matching">
+    <name>
+      <text>List Index</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Match the following.</p><pre>fruits = ["watermelon", "banana", "orange", "apple"]<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <shuffleanswers>true</shuffleanswers>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <subquestion format="html">
+      <text><![CDATA[<pre>print(fruits[1])<br></pre>]]></text>
+      <answer>
+        <text>banana</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>print(fruits[0:1])<br></pre>]]></text>
+      <answer>
+        <text><![CDATA[["watermelon"]]]></text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>print(fruits[1:])<br></pre>]]></text>
+      <answer>
+        <text>['banana', 'orange', 'apple']</text>
+      </answer>
+    </subquestion>
+  </question>
+
+<!-- question: 91  -->
+  <question type="matching">
+    <name>
+      <text>Printing Math</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Match the output with the code.</p><pre>x = 20.0</pre><pre>y = 5.0<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <shuffleanswers>true</shuffleanswers>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <subquestion format="html">
+      <text><![CDATA[<pre>print(x+y)<br></pre>]]></text>
+      <answer>
+        <text>25.0</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>print(x-y)<br></pre>]]></text>
+      <answer>
+        <text>15.0</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>print(x*y)<br></pre>]]></text>
+      <answer>
+        <text>100.0</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>print(x/y)<br></pre>]]></text>
+      <answer>
+        <text>4.0</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>print(x%y)<br></pre>]]></text>
+      <answer>
+        <text>0.0</text>
+      </answer>
+    </subquestion>
+  </question>
+
+<!-- question: 52  -->
+  <question type="matching">
+    <name>
+      <text>Printing String Variables</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Please match the code with the output.</p><p><i>Assume that:</i></p><pre>singer = "Bob Mould"<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <shuffleanswers>true</shuffleanswers>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <subquestion format="html">
+      <text><![CDATA[<pre>print("singer")<br></pre>]]></text>
+      <answer>
+        <text>singer</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>print(singer)<br></pre>]]></text>
+      <answer>
+        <text>Bob Mould</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>print(len("singer"))<br></pre>]]></text>
+      <answer>
+        <text>6</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>print(len(singer))<br></pre>]]></text>
+      <answer>
+        <text>9</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>print("Singer: {}".format(singer))<br></pre>]]></text>
+      <answer>
+        <text>Singer: Bob Mould</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>print("Singer: {}".format("singer"))<br></pre>]]></text>
+      <answer>
+        <text>Singer: singer</text>
+      </answer>
+    </subquestion>
+  </question>
+
+<!-- question: 56  -->
+  <question type="matching">
+    <name>
+      <text>Python Version Input</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Match the Python version with the correct command to get user input.<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <shuffleanswers>true</shuffleanswers>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <subquestion format="html">
+      <text><![CDATA[<p>Python 2.x<br></p>]]></text>
+      <answer>
+        <text>raw_input</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<p>Python 3.x<br></p>]]></text>
+      <answer>
+        <text>input</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text></text>
+      <answer>
+        <text>get_input</text>
+      </answer>
+    </subquestion>
+  </question>
+
+<!-- question: 53  -->
+  <question type="matching">
+    <name>
+      <text>Type Conversion</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Match the code with the conversion type.<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <shuffleanswers>true</shuffleanswers>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <subquestion format="html">
+      <text><![CDATA[<pre>x = "23"</pre><pre>x = int(x)<br></pre>]]></text>
+      <answer>
+        <text><![CDATA[string -> Int]]></text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>x = 99</pre><pre>x = string(99)<br></pre>]]></text>
+      <answer>
+        <text><![CDATA[int -> string]]></text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<pre>x = "3.14159"</pre><pre>x = float(x)<br></pre>]]></text>
+      <answer>
+        <text><![CDATA[string -> float]]></text>
+      </answer>
+    </subquestion>
+  </question>
+
+<!-- question: 100  -->
+  <question type="cloze">
+    <name>
+      <text>Slices</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Please enter the correct output.</p><pre>album = "Flip Your Wig"</pre><p><br></p><pre>print(album[5])<br></pre><p>{:SHORTANSWER:=Y}<br></p><pre>print(album[:4])<br></pre><p>{:SHORTANSWER:=Flip}<br></p><pre>print(album[5:9])<br></pre><p>{:SHORTANSWER:=Your}<br></p><pre>print(album[10:])</pre><p>{:SHORTANSWER:=Wig}<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+  </question>
+
+<!-- question: 86  -->
+  <question type="multichoice">
+    <name>
+      <text>Boolean Values</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What are the 2 possible values of a boolean variable?<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>false</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="50" format="html">
+      <text><![CDATA[<p>True<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct!<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="50" format="html">
+      <text><![CDATA[<p>False<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct!<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="-50" format="html">
+      <text><![CDATA[<p>Yes<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, try again.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="-50" format="html">
+      <text><![CDATA[<p>No<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Oh, sorry. Try again.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 90  -->
+  <question type="multichoice">
+    <name>
+      <text>Conditional Definition</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is a conditional?<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>A way of comparing values<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>You got it!<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[A way of raising a value to the power of another value<br>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope, sorry.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>A way of getting part of your code to repeat<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope, sorry.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 74  -->
+  <question type="multichoice">
+    <name>
+      <text>Creating a list</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Which of the following is the correct way to create a list?<br><br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<pre>fruits = ["watermelon", "banana", "orange"]<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct.&nbsp; You need brackets and a comma between items.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<pre>fruits = {"watermelon", "banana", "orange"}<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, lists use brackets, not braces.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<pre>fruits = ["watermelon"; "banana"; "orange"]<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, you need a comma between list items, not semicolons.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<pre>fruits = {"watermelon"; "banana"; "orange"}<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, try again.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 66  -->
+  <question type="multichoice">
+    <name>
+      <text>Dictionary Add Data</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>How would I add more information to the dictionary?<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<pre>languages["Japan"] = "Japanese"<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct!<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<pre>languages["Japan"].append("Japanese")<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry. You use the .append() method with lists, not dictionaries.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<pre>languages{"Japan"} = "Japanese"<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Not quite. You use braces only when creating the initial dictionary.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<pre>languages{"Japan"}.append("Japanese")<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, try again!<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 68  -->
+  <question type="multichoice">
+    <name>
+      <text>Dictionary Meaning</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is a dictionary (in Python)?<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>A set of data stored in a key:value pair<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct! Remember, dictionaries are unordered.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>A set of data stored in some particular order.<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope.&nbsp; That was another unit.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>A way of getting code to repeat.<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, that was a different unit.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 67  -->
+  <question type="multichoice">
+    <name>
+      <text>Dictionary New</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Which of the following is the correct way to define a dictionary?<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<pre>languages = {"Romania":"Romania", "Korea":"Korean"}<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct!<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<pre>languages = ["Romania":"Romania", "Korea":"Korean"]<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope. Dictionaries use braces, not brackets.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<pre>languages = {"Romania":"Romania"; "Korea":"Korean"}<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, you need to use a comma between the key value pairs.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<pre>languages = ["Romania":"Romania"; "Korea":"Korean"]<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope, try again!<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 65  -->
+  <question type="multichoice">
+    <name>
+      <text>Dictionary Print Info</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>How would I print the language in Romania?<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<pre>print(languages["Romania"])<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct! The key goes inside the brackets.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<pre>print(languages{"Romania"})<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry. You only use braces when creating the initial dictionary.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 76  -->
+  <question type="multichoice">
+    <name>
+      <text>For Each Loop (String)</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the output?</p><pre>title = "Celebrated Summer"</pre><pre>for letter in title:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; print(letter)<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p><br></p><p>C</p><p>e</p><p>l</p><p>e</p><p>b</p><p>r</p><p>a</p><p>t</p><p>e</p><p>d</p><p><br></p><p>S</p><p>u</p><p>m</p><p>m</p><p>e</p><p>r<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>That's correct. The loop iterates through each letter and prints it on a separate ine.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Celebrated Summer<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry.&nbsp; The print statement goes to the next line after each character.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 83  -->
+  <question type="multichoice">
+    <name>
+      <text>For Loop Colon</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is wrong with the following code?</p><pre>for x in range(0, 10)<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>It is missing a colon at the end.<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct. Just like with conditionals, loops require a colon at the end of the first line.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>It shoud be:</p><pre>for x in range[0, 10]<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope, stick with parentheses for this one.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>It should be:</p><pre>for x = range(0, 10)<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry. This is a common beginner mistake.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 81  -->
+  <question type="multichoice">
+    <name>
+      <text>For Loop Example 1</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the output of the following?</p><pre>for x in range(2, 10, 2):<br>&nbsp;&nbsp;&nbsp; print(x)<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p><br></p><p>2</p><p>4</p><p>6</p><p>8<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct!<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p><br></p><p>2</p><p>4</p><p>6</p><p>8</p><p>10<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry. Remember, ranges are not inclusive (subtract one from the second number in the parentheses)<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p><br></p><p>0</p><p>2</p><p>4</p><p>6</p><p>8<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, this one starts at 2.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p><br></p><p>0</p><p>2</p><p>4</p><p>6</p><p>8</p><p>10<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, this one starts at 2.&nbsp; And it does not get as far as 10.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 80  -->
+  <question type="multichoice">
+    <name>
+      <text>For Loop Example 2</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the output of the following?</p><pre>for x in range(10, 2, -2):<br>&nbsp;&nbsp;&nbsp; print(x)<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p><br></p><p>10</p><p>8</p><p>6</p><p>4</p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>You got it!<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p><br></p><p>10</p><p>8</p><p>6</p><p>4</p><p>2<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry. It does not make it to 2 (it stops at 1: 2 -1)<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p><br></p><p>10</p><p>8</p><p>6</p><p>4</p><p>2</p><p>0</p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope. Take another look.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 82  -->
+  <question type="multichoice">
+    <name>
+      <text>For Loop Indentation</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is wrong with the following?<br><br></p><pre>for x in range(1, 11):</pre><pre>print(x)</pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>The second line needs to be indented.<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct!&nbsp; Just like with conditionals, the next line needs to be indented.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>The second line should be:</p><pre>print(x):<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope, onlly the first line needs a colon.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>The first line should be:</p><pre>for range in x(1, 11):<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, you seem to have that backwards.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 77  -->
+  <question type="multichoice">
+    <name>
+      <text>For Loop Slice</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the output?<br></p><pre>title = "Celebrated Summer"<br>for index in range(0, 10, 2):<br>&nbsp;&nbsp;&nbsp; print(title[index])<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p><br></p><p>C<br>l<br>b<br>a<br>e<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct. It is every other letter starting with the first letter until the letter with index 8.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p><br></p><p>C<br>l<br>b<br>a<br>e</p><p><br></p><p>u</p><p>m<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, it doesn't go quite that far.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 61  -->
+  <question type="multichoice">
+    <name>
+      <text>Function Indentation</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is wrong with this function?</p><pre>def print_pi():<br>print(3.14159)<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>The second line needs to be indented.<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct! Just like with loops and conditionals, the second line must be indented.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>PI shoud be capitaized.<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope. You could capitalize it, but you don't need to.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>The first line should read: def print_pi(3.14.159):<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope, sorry. Try again.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 64  -->
+  <question type="multichoice">
+    <name>
+      <text>Function Meaning</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[What is a function?<br>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>A helper program within a program that performs some action.<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct! From Wikipedia: A sequence of program instructions that perform a specific task, packaged as a unit.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>A way of comparing values<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope, that was another unit.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>A set of data stored in a key:value pair<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Ooh...not quite.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 60  -->
+  <question type="multichoice">
+    <name>
+      <text>Function Not Called</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the output from the following?<br><br></p><pre>number = 4<br><br>def triple_it(x):</pre><pre>&nbsp;&nbsp;&nbsp; print (x * 3)</pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>Nothing. You need to call the function first.<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Yes. Defining a function does nothing.&nbsp; You have to call the function to use its code.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>12<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope, sorry.&nbsp; Take another look.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>You get an error because x is not defined.<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[Sorry, try again.<br>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 87  -->
+  <question type="multichoice">
+    <name>
+      <text>Indenting</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What do you need to do to the next line after an if statement?<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>Indent it<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct. This is a feature of Python - whitespace matters. You can use a tab, or 4 spaces as long as you only use that in your programs - you cannot mix and match indentation styles.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>End it with a ;<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope. Python does not require semicolons at the end of lines.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>End it with a :<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry. Only the line with the if statement needs a colon at the end.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 55  -->
+  <question type="multichoice">
+    <name>
+      <text>Input Not Assigned</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p><p>What is wrong with this code (assume we are using Python 3.x)?<br><br></p><pre>input("What is your name? &gt; ")</pre><pre>print ("Hello {}.".format(name))</pre><br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<pre>You need to assign the input to a variable.&nbsp; For example: name = input("")<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct! You need to tell Python which variable to store the input in.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<pre>The second line should be: print ("Hello {}.".format[name])<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry. There is nothing wrong with that line.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>On Python 3, you need to use raw_input<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry. raw_input is used on Python 2.x<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 54  -->
+  <question type="multichoice">
+    <name>
+      <text>Input Variable Type</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>By default, what kind of variable does input (and raw_input) return?<br><br><br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>string<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct! Python stores it as a string by default.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>int<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, try again.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>float<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope. Give it another go.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>boolean<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, booleans only have 2 values: True or False<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 95  -->
+  <question type="multichoice">
+    <name>
+      <text>Integer of Float 1</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Is the following an integer or a float?<br><br></p><pre>age = 45</pre><p><br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>Integer<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct! There is no decimal point.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Float<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope, sorry. Floats have decimal points.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 94  -->
+  <question type="multichoice">
+    <name>
+      <text>Integers or Floats 2</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Is the following an integer or a float?<br><br></p><pre>height = 174.5</pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Integer<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, integers do not have decimal points.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>Float<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Yes!<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 72  -->
+  <question type="multichoice">
+    <name>
+      <text>List Append</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>How would I add apple to my list?</p><pre>fruits = ["watermelon", "banana", "orange"]<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<pre>fruits.append("apple")<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<pre>Correct! Use this format: listname.append(item)<br></pre>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<pre>append.fruits("apple")<br></pre>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, you seem to have it backwards.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 70  -->
+  <question type="multichoice">
+    <name>
+      <text>List For Each</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the output?</p><pre>fruits = ["watermelon", "banana", "orange", "apple"]<br>for fruit in fruits:<br>&nbsp;&nbsp;&nbsp; print(fruit)<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p><br></p><p>watermelon</p><p>banana</p><p>orange</p><p>apple<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct - lists are printed in the same order.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<br>apple<br>banana<br>orange<br>watermelon<br>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry. Lists are printed in order.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 69  -->
+  <question type="multichoice">
+    <name>
+      <text>List For Each Sorted</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p><p>What is the output?</p><pre>fruits = ["watermelon", "banana", "orange", "apple"]<br>fruits.sort()<br>for fruit in fruits:<br>&nbsp;&nbsp;&nbsp; print(fruit)<br></pre><br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p><br></p><p>apple</p><p>banana</p><p>orange</p><p>watermelon<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct! The .sort() method sorts the list in alphabetical or lowest to highest order.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p><br></p><p>watermelon</p><p>banana</p><p>orange</p><p>apple<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Try again. What do you think .sort() does?<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 75  -->
+  <question type="multichoice">
+    <name>
+      <text>List Meaning</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is a list?<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>An ordered set of data<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct. The key aspect of a list is that it is ordered.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>A set of data stored in a key:value pair<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, that is a different unit.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 84  -->
+  <question type="multichoice">
+    <name>
+      <text>Loop Meaning</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is a loop?<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>A way of repeating a section of your code<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct!<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>A way of comparing values<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, wrong unit.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>A way of raising a value to the power of another value<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[Hmmm. Try again.<br>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 92  -->
+  <question type="multichoice">
+    <name>
+      <text>Print Integer and Float TypeError</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the output?<br></p><pre>age = 45</pre><pre>height = 174.5</pre><pre><br>print ("Age: " + age)</pre><p><br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>TypeError: must be str, not float<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct. When concatenating a string in Python, the variable must also be a string.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Age: 45<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry. You cannot concatenate a string and an int.&nbsp; You would have to use %s or .format()<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Age: 174.5<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope.&nbsp; Try again.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 105  -->
+  <question type="multichoice">
+    <name>
+      <text>Variable Names</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Please select the variable names which are OK to use in Python.<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>false</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="33.33333" format="html">
+      <text><![CDATA[<p>x<br></p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="33.33333" format="html">
+      <text><![CDATA[<p>my_age<br></p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="-33.33333" format="html">
+      <text><![CDATA[<p>1year<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry. Variable names cannot start with a number.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="-33.33333" format="html">
+      <text><![CDATA[<p>my age<br></p>]]></text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, variable names cannot have a space in them.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="33.33333" format="html">
+      <text><![CDATA[<p>FPS<br></p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 88  -->
+  <question type="shortanswer">
+    <name>
+      <text>Colon</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What symbol do you need at the end of a conditional (if) statement?<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>0</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>:</text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct!&nbsp; Beginners (on not-so-beginners like myself) often forget this.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>;</text>
+      <feedback format="html">
+        <text><![CDATA[<p>Close, but not quite right.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>.</text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry.&nbsp; You need another dot somewhere.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 89  -->
+  <question type="shortanswer">
+    <name>
+      <text>Equality</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>To check for equality, how many equals signs do you need?<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>0</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>2</text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct!<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>1</text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry. We use one equals sign when assigning a value.&nbsp; For example, x = 42.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 63  -->
+  <question type="shortanswer">
+    <name>
+      <text>Function keyword</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>In Python, what keyword is used to define a function?<br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>1</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>def</text>
+      <feedback format="html">
+        <text><![CDATA[<p>You got it!<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>define</text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry. Close, but not quite.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>function</text>
+      <feedback format="html">
+        <text><![CDATA[<p>Nope. Try again.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 62  -->
+  <question type="shortanswer">
+    <name>
+      <text>Function Missing Colon</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is wrong with this function definition? Type the correct version below.<br><br></p><pre>def print_pi()</pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>1</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>def print_pi():</text>
+      <feedback format="html">
+        <text><![CDATA[<p>You got it! Just like with conditional statements and loops, you need a colon at the end of the first line of the function definition.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 59  -->
+  <question type="shortanswer">
+    <name>
+      <text>Function Output 1</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the output from the following?<br><br></p><pre>number = 5</pre><pre><br>def triple_it(x):</pre><pre>&nbsp;&nbsp;&nbsp; print (x * 3)</pre><pre><br>triple_it(number)</pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>0</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>15</text>
+      <feedback format="html">
+        <text><![CDATA[<p>You got it!<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>12</text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry. I think you are confused with another question.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 58  -->
+  <question type="shortanswer">
+    <name>
+      <text>Function Output 2</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[What is the output of the following?<br><br><pre>def get_square(x):</pre><pre>&nbsp;&nbsp;&nbsp; return x * x</pre><pre><br>number = 3</pre><pre>result = get_square(number)</pre><pre>print(result)</pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>0</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>9</text>
+      <feedback format="html">
+        <text><![CDATA[<p>You got it!<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>6</text>
+      <feedback format="html">
+        <text><![CDATA[<p>Uhm...not quite.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 73  -->
+  <question type="shortanswer">
+    <name>
+      <text>List Length</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the output?</p><p><br></p><pre>fruits = ["watermelon", "banana", "orange"]</pre><pre>print(len(fruits))<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>0</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>3</text>
+      <feedback format="html">
+        <text><![CDATA[<p>You got it!<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 93  -->
+  <question type="shortanswer">
+    <name>
+      <text>Print Integer and Float with Quotes</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the output?<br></p><pre>age = 45<br>height = 174.5<br><br>print("age + height")<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>0</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>age + height</text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct!&nbsp; Anything inside quotes is printed exactly as it is.<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>219.5</text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry. Look again, paying close attention to the quotation marks.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 79  -->
+  <question type="shortanswer">
+    <name>
+      <text>Slice Review 1</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the output?</p><pre>title = "Celebrated Summer"<br>print(title[0])<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>1</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>C</text>
+      <feedback format="html">
+        <text><![CDATA[<p>You got it!<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>c</text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, capitalization counts.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 78  -->
+  <question type="shortanswer">
+    <name>
+      <text>Slice Review 2</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the output?</p><pre>title = "Celebrated Summer"<br>print(title[11])<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>1</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>S</text>
+      <feedback format="html">
+        <text><![CDATA[<p>That's right!<br></p>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>s</text>
+      <feedback format="html">
+        <text><![CDATA[<p>Sorry, capitalization counts!<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 102  -->
+  <question type="shortanswer">
+    <name>
+      <text>String.capitalize()</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the output?</p><pre>title = "too far down"<br>print(title.capitalize())<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>1</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>Too far down</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 103  -->
+  <question type="shortanswer">
+    <name>
+      <text>String.lower()</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the output?</p><pre>print("New Day Rising".lower())<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>1</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>new day rising</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 101  -->
+  <question type="shortanswer">
+    <name>
+      <text>String.title()</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the output?</p><pre>title = "too far down"</pre><pre>print(title.title())<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>1</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>Too Far Down</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 104  -->
+  <question type="shortanswer">
+    <name>
+      <text>String.upper()</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>What is the correct output?</p><pre>print("Candy Apple Grey".upper())<br></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>1</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>CANDY APPLE GREY</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 106  -->
+  <question type="truefalse">
+    <name>
+      <text>Variables</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[True or False: The variable "x" can only contain a number.<br><p><br></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>1.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>true</text>
+      <feedback format="html">
+        <text><![CDATA[Sorry, the variable name does not determine the type of value.<br>]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>false</text>
+      <feedback format="html">
+        <text><![CDATA[<p>Correct. Any legal variable name can contain any type of value.<br></p>]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+</quiz>

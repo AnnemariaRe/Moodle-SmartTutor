@@ -1,7 +1,11 @@
 (function(window) {
     var Utils = window.MetrikaUtils;
     var WATCH_MILESTONES = [0, 25, 50, 75, 100];
-    var TIMEUPDATE_THROTTLE = 1000;
+    var TIMEUPDATE_THROTTLE = 500;
+    var RETRY_INTERVALS = [500, 1000, 2000, 3000, 5000, 8000, 10000, 15000];
+
+    var trackedNativeMedia = new Set();
+    var trackedYouTubeIframes = new Set();
 
     function normalizeSrc(url) {
         if (!url) return null;
@@ -26,7 +30,64 @@
         return null;
     }
 
-    
+    function getSegmentIndex(percent) {
+        if (percent < 25) return 0;
+        if (percent < 50) return 1;
+        if (percent < 75) return 2;
+        return 3;
+    }
+
+    function getSegmentLabel(index) {
+        var labels = ['0-25%', '25-50%', '50-75%', '75-100%'];
+        return labels[index] || 'unknown';
+    }
+
+    function isVideoJSElement(element) {
+        if (element.classList.contains('video-js') || element.classList.contains('vjs-tech')) {
+            return true;
+        }
+        if (element.id && element.id.indexOf('videojs') !== -1) {
+            return true;
+        }
+        if (element.closest && element.closest('.video-js')) {
+            return true;
+        }
+        return false;
+    }
+
+    function isYouTubeUrl(src) {
+        return src && (src.indexOf('youtube.com') !== -1 || src.indexOf('youtu.be') !== -1);
+    }
+
+    function isYouTubePlayer(playerEl) {
+        return playerEl && (
+            playerEl.classList.contains('vjs-youtube') ||
+            (playerEl.querySelector && playerEl.querySelector('iframe[src*="youtube.com"]'))
+        );
+    }
+
+    function getPlayerSource(player) {
+        var mediaSrc = null;
+        try {
+            if (player.currentSource && typeof player.currentSource === 'function') {
+                var srcObj = player.currentSource();
+                mediaSrc = srcObj && srcObj.src;
+            }
+        } catch (e) {}
+        if (!mediaSrc && player.currentSrc && typeof player.currentSrc === 'function') {
+            mediaSrc = player.currentSrc();
+        }
+        return mediaSrc;
+    }
+
+    function safeCall(fn, fallback) {
+        try {
+            return fn();
+        } catch (e) {
+            return fallback;
+        }
+    }
+
     function VideoTracker(counterId, mediaId, mediaType, moduleId, courseId) {
         this.counterId = counterId;
         this.mediaId = mediaId;
@@ -34,7 +95,7 @@
         this.moduleId = moduleId;
         this.courseId = courseId;
         this.userId = window.M && window.M.moodle && window.M.moodle.userId;
-        
+
         this.watchedMilestones = new Set();
         this.pauseCount = 0;
         this.seekCount = 0;
@@ -43,10 +104,14 @@
         this.totalWatchTime = 0;
         this.watchStartTime = null;
         this.lastTimeupdate = 0;
+
+        this.segmentWatchTime = [0, 0, 0, 0];
+        this.currentSegment = -1;
+        this.segmentStartTime = null;
     }
 
     VideoTracker.prototype.getWatchPercent = function(currentTime, duration) {
-        if (!duration || duration === 0) return 0;
+        if (!duration) return 0;
         return Math.floor((currentTime / duration) * 100);
     };
 
@@ -57,12 +122,12 @@
         parts.push('mediaId=' + this.mediaId);
         parts.push('mediaType=' + this.mediaType);
         parts.push('eventType=' + eventType);
-        
+
         for (var key in params) {
             if (params[key] != null) parts.push(key + '=' + params[key]);
         }
         if (this.userId) parts.push('userId=' + this.userId);
-        
+
         var eventKey = parts.join(';');
         console.log('[metrika]', this.mediaType, eventType + ':', eventKey);
         ym(this.counterId, 'params', { eventKey: eventKey });
@@ -71,36 +136,85 @@
     VideoTracker.prototype.sendWatchEvent = function(percent, eventType) {
         if (this.watchedMilestones.has(percent)) return;
         this.watchedMilestones.add(percent);
-        this.sendEvent('video_watch', {
-            watchPercent: percent,
-            event: eventType
-        });
+        this.sendEvent('video_watch', { watchPercent: percent, event: eventType });
         ym(this.counterId, 'reachGoal', 'video_watch_' + percent);
     };
 
-    VideoTracker.prototype.sendPauseEvent = function() {
+    VideoTracker.prototype.sendPauseEvent = function(currentTime, duration) {
         this.pauseCount++;
-        this.sendEvent('video_pause', { pauseCount: this.pauseCount });
+        var pauseTimeMs = currentTime != null ? Math.round(currentTime * 1000) : null;
+        var pausePercent = currentTime != null && duration ? this.getWatchPercent(currentTime, duration) : null;
+        this.sendEvent('video_pause', {
+            pauseCount: this.pauseCount,
+            pauseTimeMs: pauseTimeMs,
+            pausePercent: pausePercent
+        });
     };
 
-    VideoTracker.prototype.sendSeekEvent = function(isBackward) {
+    VideoTracker.prototype.sendSeekEvent = function(isBackward, fromTime, toTime, duration) {
         this.seekCount++;
         if (isBackward) this.seekBackwardCount++;
+        
+        var fromPercent = this.getWatchPercent(fromTime, duration);
+        var toPercent = this.getWatchPercent(toTime, duration);
+        var fromSegment = getSegmentIndex(fromPercent);
+        var toSegment = getSegmentIndex(toPercent);
+        
         this.sendEvent('video_seek', {
             seekCount: this.seekCount,
-            seekBackward: isBackward ? 1 : 0
+            seekBackward: isBackward ? 1 : 0,
+            fromSegment: getSegmentLabel(fromSegment),
+            toSegment: getSegmentLabel(toSegment),
+            fromTimeMs: Math.round(fromTime * 1000),
+            toTimeMs: Math.round(toTime * 1000)
         });
+    };
+
+    VideoTracker.prototype.startSegmentTracking = function(currentTime, duration) {
+        var percent = this.getWatchPercent(currentTime, duration);
+        this.currentSegment = getSegmentIndex(percent);
+        this.segmentStartTime = Date.now();
+    };
+
+    VideoTracker.prototype.stopSegmentTracking = function() {
+        if (this.segmentStartTime !== null && this.currentSegment >= 0 && this.currentSegment < 4) {
+            var elapsedMs = Date.now() - this.segmentStartTime;
+            this.segmentWatchTime[this.currentSegment] += elapsedMs;
+            this.totalWatchTime += elapsedMs;
+        }
+        this.segmentStartTime = null;
+    };
+
+    VideoTracker.prototype.updateSegmentTracking = function(currentTime, duration) {
+        if (this.segmentStartTime === null) return;
+
+        var percent = this.getWatchPercent(currentTime, duration);
+        var newSegment = getSegmentIndex(percent);
+
+        if (newSegment !== this.currentSegment) {
+            this.stopSegmentTracking();
+            this.currentSegment = newSegment;
+            this.segmentStartTime = Date.now();
+        }
     };
 
     VideoTracker.prototype.sendFinalStats = function(currentTime, duration) {
-        var finalPercent = this.getWatchPercent(currentTime || 0, duration || 0);
-        this.sendEvent('video_stats', {
-            finalPercent: finalPercent,
+        this.stopSegmentTracking();
+        var params = {
+            finalPercent: this.getWatchPercent(currentTime || 0, duration || 0),
             pauseCount: this.pauseCount,
             seekCount: this.seekCount,
             seekBackwardCount: this.seekBackwardCount,
-            totalWatchTime: Math.round(this.totalWatchTime)
-        });
+            totalWatchTimeMs: Math.round(this.totalWatchTime),
+            segment_0_25_ms: Math.round(this.segmentWatchTime[0]),
+            segment_25_50_ms: Math.round(this.segmentWatchTime[1]),
+            segment_50_75_ms: Math.round(this.segmentWatchTime[2]),
+            segment_75_100_ms: Math.round(this.segmentWatchTime[3])
+        };
+        if (duration && duration > 0) {
+            params.videoDurationMs = Math.round(duration * 1000);
+        }
+        this.sendEvent('video_stats', params);
     };
 
     VideoTracker.prototype.checkMilestones = function(currentTime, duration) {
@@ -113,277 +227,265 @@
         }
     };
 
-    /**
-     * Отслеживание VideoJS плеера
-     */
-    function trackVideoJS(counterId, element, moduleId, courseId) {
-        var videojsPlayer = null;
-        
-        if (window.videojs && element) {
-            try {
-                var players = window.videojs.getPlayers();
-                for (var playerId in players) {
-                    var player = players[playerId];
-                    if (player.el() === element || player.el().contains(element)) {
-                        videojsPlayer = player;
-                        break;
-                    }
-                }
-                if (!videojsPlayer && element.id) {
-                    videojsPlayer = window.videojs(element.id);
-                }
-            } catch (e) {}
+    VideoTracker.prototype.accumulateWatchTime = function() {
+        if (this.watchStartTime) {
+            this.totalWatchTime += Date.now() - this.watchStartTime;
+            this.watchStartTime = null;
         }
-        
-        if (videojsPlayer) {
-            trackVideoJSPlayer(counterId, videojsPlayer, moduleId, courseId);
+    };
+
+    function createMediaAccessor(source) {
+        if (typeof source.currentTime === 'function') {
+            return {
+                getCurrentTime: function() { return safeCall(function() { return source.currentTime(); }, 0); },
+                getDuration: function() { return safeCall(function() { return source.duration(); }, 0); }
+            };
+        }
+        return {
+            getCurrentTime: function() { return source.currentTime || 0; },
+            getDuration: function() { return source.duration || 0; }
+        };
+    }
+
+    function attachTrackingEvents(eventSource, tracker, mediaAccessor, useSegmentTracking) {
+        var onPlay = function() {
+            var currentTime = mediaAccessor.getCurrentTime();
+            var duration = mediaAccessor.getDuration();
+
+            if (useSegmentTracking) {
+                tracker.startSegmentTracking(currentTime, duration);
+            } else {
+                tracker.watchStartTime = Date.now();
+            }
+
+            var percent = tracker.getWatchPercent(currentTime, duration);
+            tracker.sendWatchEvent(percent, 'play');
+        };
+
+        var onPause = function() {
+            var currentTime = mediaAccessor.getCurrentTime();
+            var duration = mediaAccessor.getDuration();
+
+            if (useSegmentTracking) {
+                tracker.stopSegmentTracking();
+            } else {
+                tracker.accumulateWatchTime();
+            }
+            tracker.sendPauseEvent(currentTime, duration);
+        };
+
+        var onTimeupdate = function() {
+            var now = Date.now();
+            if (now - tracker.lastTimeupdate < TIMEUPDATE_THROTTLE) return;
+            tracker.lastTimeupdate = now;
+
+            var duration = mediaAccessor.getDuration();
+            if (!duration) return;
+
+            var currentTime = mediaAccessor.getCurrentTime();
+            if (useSegmentTracking) {
+                tracker.updateSegmentTracking(currentTime, duration);
+            }
+            tracker.checkMilestones(currentTime, duration);
+        };
+
+        var onSeeked = function() {
+            var currentTime = mediaAccessor.getCurrentTime();
+            var duration = mediaAccessor.getDuration();
+            var fromTime = tracker.lastTime;
+            var isBackward = currentTime < fromTime;
+            tracker.lastTime = currentTime;
+            tracker.sendSeekEvent(isBackward, fromTime, currentTime, duration);
+
+            if (useSegmentTracking && tracker.segmentStartTime !== null) {
+                tracker.stopSegmentTracking();
+                tracker.startSegmentTracking(currentTime, duration);
+            }
+        };
+
+        var onEnded = function() {
+            if (useSegmentTracking) {
+                tracker.stopSegmentTracking();
+            } else {
+                tracker.accumulateWatchTime();
+            }
+            tracker.sendWatchEvent(100, 'ended');
+            tracker.sendFinalStats(mediaAccessor.getCurrentTime(), mediaAccessor.getDuration());
+        };
+
+        var onBeforeUnload = function() {
+            if (!useSegmentTracking) {
+                tracker.accumulateWatchTime();
+            }
+            tracker.sendFinalStats(mediaAccessor.getCurrentTime(), mediaAccessor.getDuration());
+        };
+
+        if (eventSource.on) {
+            eventSource.on('play', onPlay);
+            eventSource.on('pause', onPause);
+            eventSource.on('timeupdate', onTimeupdate);
+            eventSource.on('seeked', onSeeked);
+            eventSource.on('ended', onEnded);
         } else {
-            trackNativeMedia(counterId, element, moduleId, courseId);
+            eventSource.addEventListener('play', onPlay);
+            eventSource.addEventListener('pause', onPause);
+            eventSource.addEventListener('timeupdate', onTimeupdate);
+            eventSource.addEventListener('seeked', onSeeked);
+            eventSource.addEventListener('ended', onEnded);
         }
+
+        window.addEventListener('beforeunload', onBeforeUnload);
     }
 
     function trackVideoJSPlayer(counterId, player, moduleId, courseId) {
         var playerElement = player.el && player.el();
         var elementModuleId = resolveModuleIdForElement(playerElement || document.body, moduleId);
-        
-        var mediaSrc = null;
-        try {
-            if (player.currentSource && typeof player.currentSource === 'function') {
-                var srcObj = player.currentSource();
-                mediaSrc = srcObj && srcObj.src;
-            }
-        } catch (e) {}
-        if (!mediaSrc && player.currentSrc && typeof player.currentSrc === 'function') {
-            mediaSrc = player.currentSrc();
-        }
-        
+        var mediaSrc = getPlayerSource(player);
         var mediaId = normalizeSrc(mediaSrc) || player.id() || 'videojs_unknown';
-        var mediaType = 'videojs';
-        var tracker = new VideoTracker(counterId, mediaId, mediaType, elementModuleId, courseId);
-        
-        console.log('[metrika] tracking VideoJS player:', mediaId);
+        var tracker = new VideoTracker(counterId, mediaId, 'videojs', elementModuleId, courseId);
+        var mediaAccessor = createMediaAccessor(player);
 
-        player.on('play', function() {
-            tracker.watchStartTime = Date.now();
-            var percent = tracker.getWatchPercent(player.currentTime(), player.duration());
-            tracker.sendWatchEvent(percent, 'play');
-        });
-
-        player.on('pause', function() {
-            if (tracker.watchStartTime) {
-                tracker.totalWatchTime += (Date.now() - tracker.watchStartTime) / 1000;
-                tracker.watchStartTime = null;
-            }
-            tracker.sendPauseEvent();
-        });
-
-        player.on('timeupdate', function() {
-            var now = Date.now();
-            if (now - tracker.lastTimeupdate < TIMEUPDATE_THROTTLE) return;
-            tracker.lastTimeupdate = now;
-            
-            var duration = player.duration();
-            if (!duration || duration === 0) return;
-            tracker.checkMilestones(player.currentTime(), duration);
-        });
-
-        player.on('seeked', function() {
-            var currentTime = player.currentTime();
-            var isBackward = currentTime < tracker.lastTime;
-            tracker.lastTime = currentTime;
-            tracker.sendSeekEvent(isBackward);
-        });
-
-        player.on('ended', function() {
-            if (tracker.watchStartTime) {
-                tracker.totalWatchTime += (Date.now() - tracker.watchStartTime) / 1000;
-                tracker.watchStartTime = null;
-            }
-            tracker.sendWatchEvent(100, 'ended');
-            tracker.sendFinalStats(player.currentTime(), player.duration());
-        });
-
-        window.addEventListener('beforeunload', function() {
-            if (tracker.watchStartTime) {
-                tracker.totalWatchTime += (Date.now() - tracker.watchStartTime) / 1000;
-            }
-            tracker.sendFinalStats(player.currentTime(), player.duration());
-        });
+        attachTrackingEvents(player, tracker, mediaAccessor, true);
     }
 
-    /**
-     * Отслеживание native HTML5 video/audio
-     */
     function trackNativeMedia(counterId, element, moduleId, courseId) {
-        if (!element || (element.tagName.toLowerCase() !== 'video' && element.tagName.toLowerCase() !== 'audio')) {
+        if (!element || (element.tagName !== 'VIDEO' && element.tagName !== 'AUDIO')) {
             return;
         }
 
+        if (isVideoJSElement(element)) {
+            return;
+        }
+
+        var elementKey = element.id || element.src || element.currentSrc;
+        if (trackedNativeMedia.has(elementKey)) {
+            return;
+        }
+        trackedNativeMedia.add(elementKey);
+
         var elementModuleId = resolveModuleIdForElement(element, moduleId);
-        var mediaSrc = element.currentSrc || element.src || null;
+        var mediaSrc = element.currentSrc || element.src;
         if (!mediaSrc && element.querySelector) {
             var sourceEl = element.querySelector('source');
-            if (sourceEl && sourceEl.src) mediaSrc = sourceEl.src;
+            if (sourceEl) mediaSrc = sourceEl.src;
         }
-        
+
         var mediaId = normalizeSrc(mediaSrc) || element.id || 'unknown';
         var mediaType = element.tagName.toLowerCase();
         var tracker = new VideoTracker(counterId, mediaId, mediaType, elementModuleId, courseId);
-        
-        console.log('[metrika] tracking native media:', mediaId, mediaType);
+        var mediaAccessor = createMediaAccessor(element);
 
-        element.addEventListener('play', function() {
-            tracker.watchStartTime = Date.now();
-            var percent = tracker.getWatchPercent(element.currentTime, element.duration);
-            tracker.sendWatchEvent(percent, 'play');
-        });
-
-        element.addEventListener('pause', function() {
-            if (tracker.watchStartTime) {
-                tracker.totalWatchTime += (Date.now() - tracker.watchStartTime) / 1000;
-                tracker.watchStartTime = null;
-            }
-            tracker.sendPauseEvent();
-        });
-
-        element.addEventListener('timeupdate', function() {
-            var now = Date.now();
-            if (now - tracker.lastTimeupdate < TIMEUPDATE_THROTTLE) return;
-            tracker.lastTimeupdate = now;
-            
-            if (!element.duration || element.duration === 0) return;
-            tracker.checkMilestones(element.currentTime, element.duration);
-        });
-
-        element.addEventListener('seeked', function() {
-            var currentTime = element.currentTime;
-            var isBackward = currentTime < tracker.lastTime;
-            tracker.lastTime = currentTime;
-            tracker.sendSeekEvent(isBackward);
-        });
-
-        element.addEventListener('ended', function() {
-            if (tracker.watchStartTime) {
-                tracker.totalWatchTime += (Date.now() - tracker.watchStartTime) / 1000;
-                tracker.watchStartTime = null;
-            }
-            tracker.sendWatchEvent(100, 'ended');
-            tracker.sendFinalStats(element.currentTime, element.duration);
-        });
-
-        window.addEventListener('beforeunload', function() {
-            if (tracker.watchStartTime) {
-                tracker.totalWatchTime += (Date.now() - tracker.watchStartTime) / 1000;
-            }
-            tracker.sendFinalStats(element.currentTime, element.duration);
-        });
+        attachTrackingEvents(element, tracker, mediaAccessor, true);
     }
 
-    /**
-     * Отслеживание YouTube через VideoJS события
-     */
+    function trackVideoJSYouTube(counterId, player, moduleId, courseId) {
+        var playerElement = player.el && player.el();
+        var elementModuleId = resolveModuleIdForElement(playerElement || document.body, moduleId);
+        var mediaSrc = getPlayerSource(player);
+        var mediaId = normalizeSrc(mediaSrc) || player.id() || 'videojs_youtube_unknown';
+
+        if (playerElement) {
+            var youtubeIframe = playerElement.querySelector('iframe[src*="youtube.com"]');
+            if (youtubeIframe) {
+                trackedYouTubeIframes.add(youtubeIframe.id || youtubeIframe.src);
+            }
+        }
+
+        var tracker = new VideoTracker(counterId, mediaId, 'videojs_youtube', elementModuleId, courseId);
+        var mediaAccessor = createMediaAccessor(player);
+
+        attachTrackingEvents(player, tracker, mediaAccessor, false);
+    }
+
     function trackYouTube(counterId, iframe, moduleId, courseId) {
-        if (!iframe || !iframe.src || (iframe.src.indexOf('youtube.com') === -1 && iframe.src.indexOf('youtu.be') === -1)) {
+        if (!iframe || !isYouTubeUrl(iframe.src)) {
             return;
         }
 
-        console.log('[metrika] tracking YouTube video');
-        
+        var iframeKey = iframe.id || iframe.src;
+        if (trackedYouTubeIframes.has(iframeKey)) {
+            return;
+        }
+        trackedYouTubeIframes.add(iframeKey);
+
         var elementModuleId = resolveModuleIdForElement(iframe, moduleId);
         var mediaId = normalizeSrc(iframe.src) || iframe.id || 'youtube_unknown';
         var tracker = new VideoTracker(counterId, mediaId, 'youtube', elementModuleId, courseId);
-        
-        // Ищем VideoJS player для этого iframe
-        function findVideoJSPlayer() {
-            if (!window.videojs) return null;
-            try {
-                var players = window.videojs.getPlayers();
-                for (var playerId in players) {
-                    var vjsPlayer = players[playerId];
-                    var playerEl = vjsPlayer.el && vjsPlayer.el();
-                    if (playerEl && (playerEl.contains(iframe) || playerEl.querySelector('iframe') === iframe)) {
-                        return vjsPlayer;
-                    }
-                }
-            } catch (e) {}
-            return null;
-        }
-        
-        // Ждём инициализации VideoJS player
+
         var attempts = 0;
         var checkInterval = setInterval(function() {
             attempts++;
-            var vjsPlayer = findVideoJSPlayer();
-            
+            var vjsPlayer = findVideoJSPlayerForIframe(iframe);
+
             if (vjsPlayer) {
                 clearInterval(checkInterval);
-                console.log('[metrika] Found VideoJS YouTube player');
-                
-                // Отслеживаем через VideoJS события
-                vjsPlayer.on('play', function() {
-                    tracker.watchStartTime = Date.now();
-                    tracker.sendWatchEvent(0, 'play');
-                });
-                
-                vjsPlayer.on('pause', function() {
-                    if (tracker.watchStartTime) {
-                        tracker.totalWatchTime += (Date.now() - tracker.watchStartTime) / 1000;
-                        tracker.watchStartTime = null;
-                    }
-                    tracker.sendPauseEvent();
-                });
-                
-                vjsPlayer.on('timeupdate', function() {
-                    var now = Date.now();
-                    if (now - tracker.lastTimeupdate < TIMEUPDATE_THROTTLE) return;
-                    tracker.lastTimeupdate = now;
-                    
-                    try {
-                        var duration = vjsPlayer.duration && vjsPlayer.duration();
-                        if (!duration || duration === 0) return;
-                        tracker.checkMilestones(vjsPlayer.currentTime && vjsPlayer.currentTime() || 0, duration);
-                    } catch (e) {}
-                });
-                
-                vjsPlayer.on('seeked', function() {
-                    try {
-                        var currentTime = vjsPlayer.currentTime && vjsPlayer.currentTime() || 0;
-                        var isBackward = currentTime < tracker.lastTime;
-                        tracker.lastTime = currentTime;
-                        tracker.sendSeekEvent(isBackward);
-                    } catch (e) {}
-                });
-                
-                vjsPlayer.on('ended', function() {
-                    if (tracker.watchStartTime) {
-                        tracker.totalWatchTime += (Date.now() - tracker.watchStartTime) / 1000;
-                        tracker.watchStartTime = null;
-                    }
-                    tracker.sendWatchEvent(100, 'ended');
-                    try {
-                        tracker.sendFinalStats(vjsPlayer.currentTime && vjsPlayer.currentTime() || 0, vjsPlayer.duration && vjsPlayer.duration() || 0);
-                    } catch (e) {}
-                });
-            } else if (attempts >= 50) {
+                var mediaAccessor = createMediaAccessor(vjsPlayer);
+                attachTrackingEvents(vjsPlayer, tracker, mediaAccessor, false);
+            } else if (attempts >= 10) {
                 clearInterval(checkInterval);
-                console.log('[metrika] YouTube player not found, skipping');
             }
         }, 100);
-        
+
         window.addEventListener('beforeunload', function() {
-            if (tracker.watchStartTime) {
-                tracker.totalWatchTime += (Date.now() - tracker.watchStartTime) / 1000;
-            }
-            tracker.sendFinalStats();
+            tracker.accumulateWatchTime();
+            tracker.sendFinalStats(0, 0);
         });
     }
 
+    function findVideoJSPlayerForIframe(iframe) {
+        if (!window.videojs) return null;
+
+        try {
+            var players = window.videojs.getPlayers();
+
+            for (var playerId in players) {
+                var vjsPlayer = players[playerId];
+                if (!vjsPlayer) continue;
+                var playerEl = vjsPlayer.el && vjsPlayer.el();
+                if (playerEl && (playerEl.contains(iframe) || playerEl.querySelector('iframe') === iframe)) {
+                    return vjsPlayer;
+                }
+            }
+
+            if (iframe.id && iframe.id.indexOf('_youtube_api') !== -1) {
+                var playerIdMatch = iframe.id.match(/^(.+)_youtube_api$/);
+                if (playerIdMatch && players[playerIdMatch[1]]) {
+                    return players[playerIdMatch[1]];
+                }
+            }
+
+            var parentVideoJS = iframe.closest('.video-js');
+            if (parentVideoJS && parentVideoJS.id && players[parentVideoJS.id]) {
+                return players[parentVideoJS.id];
+            }
+
+            var parentContainer = iframe.parentElement;
+            if (parentContainer && parentContainer.parentElement) {
+                var videoEl = parentContainer.parentElement.querySelector('video.video-js, video.vjs-tech');
+                if (videoEl && videoEl.id && players[videoEl.id]) {
+                    return players[videoEl.id];
+                }
+            }
+        } catch (e) {}
+
+        return null;
+    }
+
+    function getVideoJS() {
+        if (window.videojs) return window.videojs;
+        if (window.require && window.require.defined && window.require.defined('media_videojs/video-lazy')) {
+            try {
+                return window.require('media_videojs/video-lazy');
+            } catch (e) {}
+        }
+        return null;
+    }
 
     function setupVideoTracking(counterId) {
         var ids = Utils.getPhpIds();
         var moduleId = ids.phpModuleId;
         var courseId = Utils.getCurrentCourseId(ids.phpCourseId);
-        
+
         if (!moduleId) {
             var href = window.location.href;
             if (href.indexOf('/mod/') !== -1 && href.indexOf('/view.php') !== -1) {
@@ -391,56 +493,103 @@
             }
         }
 
-        console.log('[metrika] setting up video tracking, moduleId=', moduleId, 'courseId=', courseId);
+        var trackedPlayers = new Set();
 
-        // Native video/audio
-        var mediaElements = document.querySelectorAll('video, audio');
-        for (var i = 0; i < mediaElements.length; i++) {
-            trackVideoJS(counterId, mediaElements[i], moduleId, courseId);
-        }
+        function trackAllVideoJSPlayers() {
+            var videojs = getVideoJS();
 
-        // YouTube iframes
-        var iframes = document.querySelectorAll('iframe');
-        for (var i = 0; i < iframes.length; i++) {
-            var iframe = iframes[i];
-            var src = iframe.src || '';
-            if (src.indexOf('youtube.com') !== -1 || src.indexOf('youtu.be') !== -1) {
-                trackYouTube(counterId, iframe, moduleId, courseId);
+            if (!videojs) {
+                var vjsContainers = document.querySelectorAll('.video-js');
+                for (var i = 0; i < vjsContainers.length; i++) {
+                    var container = vjsContainers[i];
+                    if (container.player && !trackedPlayers.has(container.id)) {
+                        trackedPlayers.add(container.id);
+                        var playerEl = container.player.el && container.player.el();
+                        if (isYouTubePlayer(playerEl)) {
+                            trackVideoJSYouTube(counterId, container.player, moduleId, courseId);
+                        } else {
+                            trackVideoJSPlayer(counterId, container.player, moduleId, courseId);
+                        }
+                    }
+                }
+                return;
+            }
+
+            var players = videojs.getPlayers ? videojs.getPlayers() : {};
+
+            for (var playerId in players) {
+                var player = players[playerId];
+                if (!player || trackedPlayers.has(playerId)) continue;
+
+                trackedPlayers.add(playerId);
+                var playerEl = player.el && player.el();
+
+                if (isYouTubePlayer(playerEl)) {
+                    trackVideoJSYouTube(counterId, player, moduleId, courseId);
+                } else {
+                    trackVideoJSPlayer(counterId, player, moduleId, courseId);
+                }
             }
         }
 
-        // MutationObserver для динамически добавленных элементов
+        function trackMediaElement(elem) {
+            if (elem.tagName === 'VIDEO' || elem.tagName === 'AUDIO') {
+                if (!isVideoJSElement(elem)) {
+                    trackNativeMedia(counterId, elem, moduleId, courseId);
+                }
+            } else if (elem.tagName === 'IFRAME' && isYouTubeUrl(elem.src)) {
+                trackYouTube(counterId, elem, moduleId, courseId);
+            }
+        }
+
+        trackAllVideoJSPlayers();
+
+        RETRY_INTERVALS.forEach(function(delay) {
+            setTimeout(trackAllVideoJSPlayers, delay);
+        });
+
+        document.addEventListener('play', function(e) {
+            if (e.target && (e.target.tagName === 'VIDEO' || e.target.tagName === 'AUDIO')) {
+                setTimeout(trackAllVideoJSPlayers, 100);
+            }
+        }, true);
+
+        var mediaElements = document.querySelectorAll('video, audio, iframe');
+        for (var i = 0; i < mediaElements.length; i++) {
+            trackMediaElement(mediaElements[i]);
+        }
+
         var observer = new MutationObserver(function(mutations) {
+            var needsVideoJSCheck = false;
+
             mutations.forEach(function(mutation) {
                 mutation.addedNodes.forEach(function(node) {
                     if (node.nodeType !== 1) return;
-                    
-                    if (node.tagName && (node.tagName.toLowerCase() === 'video' || node.tagName.toLowerCase() === 'audio')) {
-                        trackVideoJS(counterId, node, moduleId, courseId);
+
+                    if (node.classList && node.classList.contains('video-js')) {
+                        needsVideoJSCheck = true;
                     }
-                    if (node.tagName && node.tagName.toLowerCase() === 'iframe') {
-                        var src = node.src || '';
-                        if (src.indexOf('youtube.com') !== -1 || src.indexOf('youtu.be') !== -1) {
-                            trackYouTube(counterId, node, moduleId, courseId);
-                        }
+
+                    if (node.tagName) {
+                        trackMediaElement(node);
                     }
-                    
-                    var nested = node.querySelectorAll && node.querySelectorAll('video, audio, iframe');
+
+                    var nested = node.querySelectorAll && node.querySelectorAll('video, audio, iframe, .video-js');
                     if (nested) {
                         for (var i = 0; i < nested.length; i++) {
                             var elem = nested[i];
-                            if (elem.tagName.toLowerCase() === 'video' || elem.tagName.toLowerCase() === 'audio') {
-                                trackVideoJS(counterId, elem, moduleId, courseId);
-                            } else if (elem.tagName.toLowerCase() === 'iframe') {
-                                var src = elem.src || '';
-                                if (src.indexOf('youtube.com') !== -1 || src.indexOf('youtu.be') !== -1) {
-                                    trackYouTube(counterId, elem, moduleId, courseId);
-                                }
+                            if (elem.classList && elem.classList.contains('video-js')) {
+                                needsVideoJSCheck = true;
                             }
+                            trackMediaElement(elem);
                         }
                     }
                 });
             });
+
+            if (needsVideoJSCheck) {
+                setTimeout(trackAllVideoJSPlayers, 500);
+            }
         });
 
         observer.observe(document.body, { childList: true, subtree: true });

@@ -1,7 +1,7 @@
 (function(window) {
     function initMetrikaOnce(initFn) {
         var attempts = 0;
-        var maxAttempts = 50; // ~5 секунд
+        var maxAttempts = 50;
 
         var timer = setInterval(function() {
             attempts++;

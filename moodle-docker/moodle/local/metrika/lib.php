@@ -11,17 +11,14 @@ function local_metrika_before_http_headers() {
         return;
     }
 
-    // Лог, чтобы видеть, что хук сработал.
     $PAGE->requires->js_init_code(
         "console.log('[metrika] hook, counterId=$counterid');"
     );
 
-    // Прокидываем counterId на всех страницах.
     $PAGE->requires->js_init_code(
         "window.M = window.M || {}; window.M.metrika = {counterId: '$counterid'};"
     );
 
-    // Прокидываем courseId, cmid и userId, если есть.
     $courseid = !empty($PAGE->course) ? (int)$PAGE->course->id : null;
     $cmid     = !empty($PAGE->cm) ? (int)$PAGE->cm->id : null;
     $userid   = !empty($USER) && !empty($USER->id) ? (int)$USER->id : null;
@@ -41,12 +38,12 @@ function local_metrika_before_http_headers() {
 
     $PAGE->requires->js_init_code(implode("\n", $js));
 
-    // Подключаем JS‑модули Метрики.
-    $PAGE->requires->js(new moodle_url('/local/metrika/js/utils.js'));
-    $PAGE->requires->js(new moodle_url('/local/metrika/js/init.js'));
-    $PAGE->requires->js(new moodle_url('/local/metrika/js/course.js'));
-    $PAGE->requires->js(new moodle_url('/local/metrika/js/module.js'));
-    $PAGE->requires->js(new moodle_url('/local/metrika/js/video.js'));
-    $PAGE->requires->js(new moodle_url('/local/metrika/metrika.js'));
-    $PAGE->requires->js(new moodle_url('/local/metrika/js/path.js'));
+    $version = '2026020905';
+    $PAGE->requires->js(new moodle_url('/local/metrika/js/utils.js', ['v' => $version]));
+    $PAGE->requires->js(new moodle_url('/local/metrika/js/path.js', ['v' => $version]));  // path должен быть перед module
+    $PAGE->requires->js(new moodle_url('/local/metrika/js/course.js', ['v' => $version]));
+    $PAGE->requires->js(new moodle_url('/local/metrika/js/module.js', ['v' => $version]));
+    $PAGE->requires->js(new moodle_url('/local/metrika/js/video.js', ['v' => $version]));
+    $PAGE->requires->js(new moodle_url('/local/metrika/js/init.js', ['v' => $version]));
+    $PAGE->requires->js(new moodle_url('/local/metrika/metrika.js', ['v' => $version]));
 }

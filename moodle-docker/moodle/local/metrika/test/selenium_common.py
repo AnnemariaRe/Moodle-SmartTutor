@@ -8,7 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
 
 
-BASE_URL = "http://localhost:8081"
+BASE_URL = "http://moodle.local:8081"
 
 USERS = [
     ("student01", "Test123!"),
@@ -72,7 +72,6 @@ def logout(driver):
 
 
 def enrol_to_course(driver, course_id: int):
-    """Самозапись на курс через /enrol/index.php?id=COURSE_ID."""
     url = f"{BASE_URL}/enrol/index.php?id={course_id}"
     print("Пробуем самозапись:", url)
     driver.get(url)
@@ -97,15 +96,14 @@ def open_course(driver, course_id: int):
 
 
 def get_course_modules(driver):
-    """Собираем ссылки на модули /mod/.../view.php?id=..., исключая файлы."""
     links = driver.find_elements(By.CSS_SELECTOR, "a[href*='/mod/'][href*='/view.php?id=']")
     hrefs = []
     for a in links:
         href = a.get_attribute("href")
         if not href:
             continue
-        if "/mod/resource/" in href:
-            continue
+        # if "/mod/resource/" in href:
+        #     continue
         if href not in hrefs:
             hrefs.append(href)
     print(f"Найдено {len(hrefs)} модулей (resource исключены)")
@@ -113,7 +111,6 @@ def get_course_modules(driver):
 
 
 def get_course_sections(driver):
-    """Собираем ссылки на разделы /course/section.php?id=... (если есть)."""
     links = driver.find_elements(By.CSS_SELECTOR, "a[href*='/course/section.php?id=']")
     hrefs = []
     for a in links:

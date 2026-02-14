@@ -62,9 +62,13 @@
     // 3) courseId=2;moduleId=9;activityType=view;step=3;prevModuleId=11;stepDurationMs=42000;userId=1
     function trackModuleViewAttempt(counterId, moduleId, courseId, activityType) {
         if (!moduleId) return;
+        if (!window.MetrikaPath) {
+            console.log('[metrika] MetrikaPath not available yet');
+            return;
+        }
         var userId = window.M && window.M.moodle && window.M.moodle.userId;
     
-        var state = MetrikaPath.get();
+        var state = window.MetrikaPath.get();
         var now = Date.now();
         var durationFromPrev = null;
         if (state.lastStepTimestamp != null) {

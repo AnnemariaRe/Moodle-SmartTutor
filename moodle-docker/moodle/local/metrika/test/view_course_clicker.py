@@ -2,10 +2,6 @@ import random
 import time
 from urllib.parse import urlparse, parse_qs
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import NoSuchElementException
 from selenium_common import (
     USERS, BASE_URL, create_driver, login, logout,
     enrol_to_course, open_course, get_course_modules, get_course_sections,
@@ -17,11 +13,9 @@ MAX_MODULES_PER_USER = 10
 MAX_SECTIONS_PER_USER = 3          # сколько секций открывает студент
 QUIZ_ATTEMPTS_FRACTION = 2      # доля quiz-модулей, по которым делаем попытку
 
-# Диапазоны «времени на модуле», сек
 MODULE_VIEW_MIN_SEC = 1.0
 MODULE_VIEW_MAX_SEC = 5.0
 
-# Диапазоны «времени на попытке теста», сек
 QUIZ_ATTEMPT_MIN_SEC = 1
 QUIZ_ATTEMPT_MAX_SEC = 4.0
 
@@ -32,10 +26,9 @@ def browse_random_modules_and_attempts(driver, module_links):
     if MAX_MODULES_PER_USER is not None:
         links = links[:MAX_MODULES_PER_USER]
 
-    visited = []      # сюда кладём уже открытые модули
+    visited = []
     quiz_views = []
 
-    # Прямой проход по модулям
     for href in links:
         print(f"Открываем модуль: {href}")
         driver.get(href)
@@ -49,8 +42,7 @@ def browse_random_modules_and_attempts(driver, module_links):
         if "/mod/quiz/view.php" in href:
             quiz_views.append(href)
 
-    # Явные возвраты к ранее посещённым модулям
-    back_steps = min(3, len(visited))  # до 3 возвратов
+    back_steps = min(3, len(visited))
     for i in range(back_steps):
         back_href = random.choice(visited)
         print(f"Возврат к ранее открытому модулю: {back_href}")
@@ -60,7 +52,6 @@ def browse_random_modules_and_attempts(driver, module_links):
         print(f"Ждём при возврате ~{back_view_time:.1f} сек")
         time.sleep(back_view_time)
 
-    # Для части тестов переходим на attempt.php
     attempts_count = int(len(quiz_views) * QUIZ_ATTEMPTS_FRACTION)
     if attempts_count <= 0:
         return
