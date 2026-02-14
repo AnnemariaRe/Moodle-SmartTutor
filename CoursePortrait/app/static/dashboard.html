@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Portrait Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script src="/static/js/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div>
+                <h1><i class="fas fa-chart-pie"></i> Course Portrait</h1>
+                <p>Аналитика сложности курсов и поведения студентов</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Controls moved below header -->
+        <div class="controls" style="justify-content: flex-start;">
+            <div class="control-group">
+                <label>Курс</label>
+                <select id="courseSelect" onchange="onCourseSelect()" style="width: 600px;">
+                    <option value="">Загрузка курсов...</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Период</label>
+                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                    <input type="date" id="dateFrom" style="width: 145px;">
+                    <span style="color: var(--text-muted);">—</span>
+                    <input type="date" id="dateTo" style="width: 145px;">
+                    <button onclick="loadDashboard()" style="margin-left: 0.5rem;"><i class="fas fa-sync-alt"></i> Обновить</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="errorContainer"></div>
+        <div id="loading" class="loading" style="display: none;">Загрузка данных...</div>
+
+        <div id="dashboard" style="display: none;">
+            <!-- Simplified Tabs - Only 3 main views -->
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('overview')"><i class="fas fa-chart-line"></i> Обзор и статистика</div>
+                <div class="tab" onclick="switchTab('analytics')"><i class="fas fa-fire"></i> Аналитика модулей</div>
+                <div class="tab" onclick="switchTab('media')"><i class="fas fa-video"></i> Медиа и рекомендации</div>
+            </div>
+
+            <!-- Overview Tab - Combined stats, bottlenecks, and funnel -->
+            <div id="overview" class="tab-content active">
+                <!-- Stats Row -->
+                <div class="stats-grid" id="statsGrid" style="margin-bottom: 1rem;"></div>
+                
+                <!-- Two Column Layout -->
+                <div class="overview-grid">
+                    <!-- Left Column: Funnel Chart -->
+                    <div class="card">
+                        <h2><i class="fas fa-filter"></i> Воронка прохождения</h2>
+                        <div class="chart-container">
+                            <canvas id="funnelChart"></canvas>
+                        </div>
+                        <div id="funnelSteps" class="module-list" style="max-height: 250px;"></div>
+                    </div>
+                    
+                    <!-- Right Column: Bottlenecks -->
+                    <div class="card">
+                        <h2><i class="fas fa-exclamation-triangle"></i> Узкие места (Bottlenecks)</h2>
+                        <div id="bottlenecksList" class="module-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab - 2x2 Grid Layout -->
+            <div id="analytics" class="tab-content">
+                <div class="analytics-grid">
+                    <!-- Top Left: Heatmap Chart -->
+                    <div class="card">
+                        <h2><i class="fas fa-fire-alt"></i> Сложность модулей</h2>
+                        <div class="chart-container">
+                            <canvas id="heatmapChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Top Right: Dropoff Chart -->
+                    <div class="card">
+                        <h2><i class="fas fa-user-minus"></i> Точки отвала</h2>
+                        <div class="chart-container">
+                            <canvas id="dropoffChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom Left: Module Details -->
+                    <div class="card">
+                        <h2><i class="fas fa-list-alt"></i> Детали по модулям</h2>
+                        <div class="module-list" id="heatmapModules"></div>
+                    </div>
+                    
+                    <!-- Bottom Right: Dropoff Points + Distribution -->
+                    <div class="card">
+                        <h2><i class="fas fa-chart-pie"></i> Распределение и отвал</h2>
+                        <div style="display: flex; gap: 1rem; margin-bottom: 0.85rem;">
+                            <div style="flex: 1;">
+                                <div class="chart-container" style="height: 150px;">
+                                    <canvas id="distributionChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="dropoffPoints" class="module-list" style="max-height: 200px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Media & Recommendations Tab -->
+            <div id="media" class="tab-content">
+                <div class="overview-grid">
+                    <!-- Left: Video Analytics -->
+                    <div class="card">
+                        <h2><i class="fas fa-play-circle"></i> Аналитика по видео</h2>
+                        <div id="videoAnalytics" class="video-list"></div>
+                    </div>
+                    
+                    <!-- Right: Recommendations -->
+                    <div class="card">
+                        <h2><i class="fas fa-lightbulb"></i> Рекомендации по улучшению</h2>
+                        <div id="recommendationsList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

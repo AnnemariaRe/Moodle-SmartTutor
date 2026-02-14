@@ -1,0 +1,61 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8001:8001"
+      - "5678:5678"
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - METRIKA_COUNTER_ID=${METRIKA_COUNTER_ID:-}
+      - METRIKA_OAUTH_TOKEN=${METRIKA_OAUTH_TOKEN:-}
+      - MOODLE_URL=http://moodle.local:8081
+      - MOODLE_TOKEN=${MOODLE_TOKEN:-}
+      - DATABASE_URL=postgresql+asyncpg://user:pass@postgres:5434/portrait
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-secret-key-change-in-production}
+    volumes:
+      - .:/app
+      - ./models:/app/models
+      - ./datasets:/app/datasets
+    restart: unless-stopped
+    networks: [moodle_shared_net]
+    extra_hosts:
+      - "moodle.local:host-gateway"
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: portrait
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5434"
+    restart: unless-stopped
+    command: -p 5434
+    networks: [moodle_shared_net]
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks: [moodle_shared_net]
+
+volumes:
+  pg_data:
+  redis_data:
+
+networks:
+  moodle_shared_net:
+    external: true
+    name: moodle_shared_net
