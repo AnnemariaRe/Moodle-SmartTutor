@@ -1,4 +1,4 @@
-from sqlalchemy import select, union_all
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import AssessmentMap, Concept, ConceptPrereq, ContentItem, StudentConceptMastery, StudentConceptStats

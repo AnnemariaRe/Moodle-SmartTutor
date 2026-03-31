@@ -137,8 +137,7 @@ def load_course_sequences(course_id: int) -> tuple[dict[int, int], list]:
     print(f"Events: {len(events_df)}, students: {events_df.student_id.nunique()}")
 
     def _rel_score(row) -> float | None:
-        import json as _j
-        p = _j.loads(row["payload"]) if isinstance(row["payload"], str) else row["payload"]
+        p = json.loads(row["payload"]) if isinstance(row["payload"], str) else row["payload"]
         et = row["event_type"]
         try:
             if et == "quiz_attempt_submitted":

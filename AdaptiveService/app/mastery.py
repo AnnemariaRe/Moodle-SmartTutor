@@ -9,8 +9,6 @@ from app.models import AssessmentMap, ContentItem, StudentConceptMastery, Studen
 
 logger = logging.getLogger(__name__)
 
-_HANDLERS = {}
-
 
 async def handle_event(event: dict) -> None:
     event_type = event.get("event_type")
