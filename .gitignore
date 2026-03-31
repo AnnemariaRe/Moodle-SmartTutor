@@ -18,3 +18,6 @@ CoursePortrait/models/
 AdaptiveService/models/
 AdaptiveService/notebooks/lightfm_eval.ipynb
 AdaptiveService/notebooks/dkt_training.ipynb
+AdaptiveService/.venv-notebooks/
+AdaptiveService/models/dkt_skill_map_10_assist_only.json
+AdaptiveService/models/dkt_skill_map_10.json
