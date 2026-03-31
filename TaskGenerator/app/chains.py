@@ -1,7 +1,7 @@
 import logging
-from typing import List, Tuple
+from typing import List
 
-from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
+from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,22 +14,7 @@ logger = logging.getLogger(__name__)
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, api_key=settings.openai_api_key)
 
-# 1. Query Rewrite Chain
-rewrite_prompt = ChatPromptTemplate.from_template("""
-Переформулируй запрос для поиска слабых концептов курса:
-Запрос: {question}
-
-Дай 3 варианта:
-1) основной — с ключевыми терминами концепта
-2) подтемы — специфические аспекты
-3) синонимы — альтернативные формулировки
-
-Формат: нумерованный список.
-""")
-
-rewrite_chain = rewrite_prompt | llm | StrOutputParser()
-
-# 2. Task Generation Chain
+# Task Generation Chain
 task_prompt = ChatPromptTemplate.from_template("""
 Сгенерируй {variants} уникальных учебных заданий по концепту "{concept_name}".
 
