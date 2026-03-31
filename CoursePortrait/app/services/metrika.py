@@ -34,27 +34,21 @@ class MetrikaService:
         date_to: Optional[datetime] = None
     ) -> List[Dict]:
         if not self.counter_id or not self.oauth_token:
-            logger.warning("Metrika credentials not configured, returning mock data")
-            return self._get_mock_metrics(course_id)
-        
+            logger.warning("Metrika credentials not configured, returning empty data")
+            return []
+
         if date_from is None:
             date_from = datetime.now() - timedelta(days=30)
         if date_to is None:
             date_to = datetime.now()
-        
+
         try:
             events = await self._fetch_events_from_api(course_id, date_from, date_to)
-            
-            aggregated_metrics = self._aggregate_events_by_module(events, course_id)
-            
-            if not aggregated_metrics:
-                return self._get_mock_metrics(course_id)
-            
-            return aggregated_metrics
-        
+            return self._aggregate_events_by_module(events, course_id)
+
         except Exception as e:
             logger.error(f"Error fetching Metrika data: {e}", exc_info=True)
-            return self._get_mock_metrics(course_id)
+            return []
     
     async def _fetch_events_from_api(
         self,
@@ -113,8 +107,8 @@ class MetrikaService:
           segment_0_25_ms, segment_25_50_ms, segment_50_75_ms, segment_75_100_ms, ...)
         """
         if not self.counter_id or not self.oauth_token:
-            logger.warning("Metrika credentials not configured, returning mock video analytics")
-            return self._get_mock_video_analytics(course_id)
+            logger.warning("Metrika credentials not configured, returning empty video analytics")
+            return []
 
         if date_from is None:
             date_from = datetime.now() - timedelta(days=30)
@@ -123,13 +117,10 @@ class MetrikaService:
 
         try:
             events = await self._fetch_events_from_api(course_id, date_from, date_to)
-            analytics = self._aggregate_video_analytics(events, course_id, module_id=module_id, media_id=media_id)
-            if not analytics:
-                return self._get_mock_video_analytics(course_id)
-            return analytics
+            return self._aggregate_video_analytics(events, course_id, module_id=module_id, media_id=media_id)
         except Exception as e:
             logger.error(f"Error fetching video analytics from Metrika: {e}", exc_info=True)
-            return self._get_mock_video_analytics(course_id)
+            return []
 
     @staticmethod
     def _get_segment_by_percent(percent: float) -> str:
@@ -413,98 +404,6 @@ class MetrikaService:
         result.sort(key=lambda x: (x.get("uniqueUsers", 0), x.get("events", 0)), reverse=True)
         return result
 
-    def _get_mock_video_analytics(self, course_id: int) -> List[Dict]:
-        import random
-        videos = []
-        labels = ["0-25", "25-50", "50-75", "75-100"]
-        
-        for i in range(random.randint(2, 5)):
-            mid = f"/pluginfile.php/{course_id}/mod_resource/content/video_{i+1}.mp4"
-            
-            video_duration = random.uniform(120, 900)
-            segment_duration = video_duration / 4
-            
-            segs = []
-            shares = [random.uniform(0.1, 0.4) for _ in range(4)]
-            total = sum(shares) or 1.0
-            shares = [s / total for s in shares]
-            
-            for idx, (label, share) in enumerate(zip(labels, shares)):
-                avg_watch_time = share * random.uniform(30, 180)
-                watch_percent = min(100.0, (avg_watch_time / segment_duration) * 100) if segment_duration > 0 else None
-                pause_count = random.randint(0, 5)
-                
-                segs.append({
-                    "segment": label,
-                    "avgWatchTime": avg_watch_time,
-                    "segmentDuration": segment_duration,
-                    "watchPercent": watch_percent,
-                    "watchShare": share,
-                    "pauseCount": pause_count,
-                    "isWellWatched": watch_percent is not None and watch_percent >= 90,
-                    "isLeastWatched": False,
-                })
-            
-            sorted_segs = sorted(segs, key=lambda x: x["watchPercent"] if x["watchPercent"] else 0)
-            if sorted_segs and not sorted_segs[0]["isWellWatched"]:
-                sorted_segs[0]["isLeastWatched"] = True
-            
-            least = [s["segment"] for s in sorted(segs, key=lambda x: x["watchShare"])[:2]]
-            most = [s["segment"] for s in sorted(segs, key=lambda x: x["watchShare"], reverse=True)[:2]]
-            
-            pause_hotspots = []
-            for label in labels:
-                if random.random() > 0.3: 
-                    pause_hotspots.append({
-                        "segment": label,
-                        "pauseCount": random.randint(1, 15),
-                        "avgPauseTime": random.uniform(5, 60),
-                    })
-            pause_hotspots.sort(key=lambda x: x["pauseCount"], reverse=True)
-            
-            seek_patterns = []
-            possible_patterns = [
-                ("50-75", "0-25", True), 
-                ("75-100", "25-50", True), 
-                ("25-50", "50-75", False), 
-                ("0-25", "75-100", False), 
-                ("50-75", "25-50", True),  
-            ]
-            for from_seg, to_seg, is_backward in possible_patterns:
-                if random.random() > 0.4:
-                    seek_patterns.append({
-                        "fromSegment": from_seg,
-                        "toSegment": to_seg,
-                        "count": random.randint(1, 12),
-                        "isBackward": is_backward,
-                    })
-            seek_patterns.sort(key=lambda x: x["count"], reverse=True)
-
-            videos.append(
-                {
-                    "courseId": course_id,
-                    "moduleId": random.randint(1, 20),
-                    "mediaId": mid,
-                    "mediaType": "video",
-                    "moduleName": f"Ð’Ð¸Ð´ÐµÐ¾-Ð»ÐµÐºÑ†Ð¸Ñ {i+1}", 
-                    "videoDurationMs": video_duration,
-                    "uniqueUsers": random.randint(5, 25),
-                    "events": random.randint(50, 300),
-                    "avgWatchPercent": random.uniform(20, 95),
-                    "avgFinalPercent": random.uniform(30, 100),
-                    "pauseCount": random.randint(0, 10),
-                    "seekCount": random.randint(0, 20),
-                    "seekBackwardCount": random.randint(0, 10),
-                    "avgTotalWatchTime": random.uniform(60, video_duration),
-                    "segments": segs,
-                    "leastWatchedSegments": least,
-                    "mostWatchedSegments": most,
-                    "pauseHotspots": pause_hotspots,
-                    "seekPatterns": seek_patterns,
-                }
-            )
-        return videos
-    
     def _parse_api_response(self, data: Dict, course_id: int) -> List[Dict]:
         events = []
         
@@ -834,35 +733,6 @@ class MetrikaService:
             "avgSessionsPerUser": round(avg_sessions, 1),
         }
 
-    def _get_mock_metrics(self, course_id: int) -> List[Dict]:
-        import random
-        logger.info(f"Generating mock metrics for course {course_id}")
-        
-        num_modules = random.randint(10, 20)
-        metrics = []
-        
-        total_students = random.randint(5, 25)
-        
-        for module_id in range(1, num_modules + 1):
-            base_watch = random.uniform(0.2, 0.9)
-            dropout_rate = random.uniform(0.3, 0.7) if base_watch < 0.5 else random.uniform(0.05, 0.3)
-            
-            retention_factor = max(0.3, 1.0 - (module_id / num_modules) * 0.5)
-            module_students = max(1, int(total_students * retention_factor))
-            
-            metrics.append({
-                "moduleId": module_id,
-                "avgDurationMs": random.uniform(20000, 180010),
-                "watchPercent": base_watch,
-                "dropoutRate": dropout_rate,
-                "studentCount": module_students,  
-                "pauseCount": random.randint(0, 10),
-                "step": module_id,
-                "sectionId": (module_id - 1) // 5 + 1  
-            })
-        
-        return metrics
-    
     async def get_module_sequences(
         self,
         course_id: int,
@@ -900,20 +770,11 @@ class MetrikaService:
             
             sequences = list(user_sequences.values())[:limit]
             
-            return sequences if sequences else self._get_mock_sequences(limit)
-        
+            return sequences
+
         except Exception as e:
             logger.error(f"Error getting module sequences: {e}")
-            return self._get_mock_sequences(limit)
-    
-    def _get_mock_sequences(self, limit: int) -> List[List[int]]:
-        import random
-        sequences = []
-        for _ in range(min(limit, 100)):
-            length = random.randint(3, 15)
-            seq = list(range(1, length + 1))
-            sequences.append(seq)
-        return sequences
+            return []
 
 
 _metrika_service: Optional[MetrikaService] = None

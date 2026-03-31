@@ -32,14 +32,280 @@ const icons = {
     error: '<i class="fas fa-times-circle"></i>',
 };
 
+const DEMO_DATA = (() => {
+    const modules = [
+        {
+            moduleId: 101, sectionId: 1, step: 1,
+            moduleName: 'Введение в Python', moduleType: 'page',
+            studentCount: 15, avgDurationMs: 220000, watchPercent: 0.94,
+            dropoutRate: 0.00, dropoutRisk: 0.06, difficultyScore: 0.14,
+            difficultyLevel: 'easy', engagementScore: 0.94,
+            difficultyDetails: {
+                explanation: 'Страница: Лёгкий',
+                metrics: [
+                    { name: 'Время чтения', value: 420, normalizedValue: 0.15, weight: 0.35, contribution: 0.052, interpretation: 'Время чтения в норме' },
+                    { name: 'Глубина прокрутки', value: 92, normalizedValue: 0.08, weight: 0.25, contribution: 0.020, interpretation: 'Большинство дочитывают' },
+                    { name: 'Повторные посещения', value: 0.2, normalizedValue: 0.07, weight: 0.20, contribution: 0.013, interpretation: 'Читают один раз — материал понятен' },
+                    { name: 'Отвал после страницы', value: 0, normalizedValue: 0.00, weight: 0.20, contribution: 0.000, interpretation: 'Низкий отвал' },
+                ],
+                suggestions: [],
+            },
+        },
+        {
+            moduleId: 102, sectionId: 1, step: 2,
+            moduleName: 'Установка среды разработки', moduleType: 'resource',
+            studentCount: 14, avgDurationMs: 380000, watchPercent: 0.87,
+            dropoutRate: 0.07, dropoutRisk: 0.13, difficultyScore: 0.21,
+            difficultyLevel: 'easy', engagementScore: 0.87,
+            difficultyDetails: {
+                explanation: 'Файл: Лёгкий',
+                metrics: [
+                    { name: 'Время в модуле', value: 380, normalizedValue: 0.19, weight: 0.40, contribution: 0.076, interpretation: 'Время в норме' },
+                    { name: 'Отвал', value: 7, normalizedValue: 0.07, weight: 0.30, contribution: 0.021, interpretation: 'Низкий отвал' },
+                    { name: 'Вовлечённость', value: 87, normalizedValue: 0.13, weight: 0.30, contribution: 0.039, interpretation: 'Высокая вовлечённость' },
+                ],
+                suggestions: [],
+            },
+        },
+        {
+            moduleId: 103, sectionId: 2, step: 3,
+            moduleName: 'Переменные и типы данных', moduleType: 'page',
+            studentCount: 13, avgDurationMs: 780000, watchPercent: 0.71,
+            dropoutRate: 0.07, dropoutRisk: 0.30, difficultyScore: 0.37,
+            difficultyLevel: 'easy', engagementScore: 0.71,
+            difficultyDetails: {
+                explanation: 'Страница: Лёгкий — время чтения немного выше нормы',
+                metrics: [
+                    { name: 'Время чтения', value: 780, normalizedValue: 0.43, weight: 0.35, contribution: 0.151, interpretation: 'Читают дольше ожидаемого' },
+                    { name: 'Глубина прокрутки', value: 76, normalizedValue: 0.24, weight: 0.25, contribution: 0.060, interpretation: 'Часть не дочитывает' },
+                    { name: 'Повторные посещения', value: 0.8, normalizedValue: 0.27, weight: 0.20, contribution: 0.053, interpretation: 'Иногда возвращаются' },
+                    { name: 'Отвал после страницы', value: 7, normalizedValue: 0.07, weight: 0.20, contribution: 0.014, interpretation: 'Низкий отвал' },
+                ],
+                suggestions: ['Разбить на несколько страниц', 'Добавить иллюстрации и примеры'],
+            },
+        },
+        {
+            moduleId: 104, sectionId: 2, step: 4,
+            moduleName: 'Условные операторы (тест)', moduleType: 'quiz',
+            studentCount: 12, avgDurationMs: 680000, watchPercent: 0.65,
+            dropoutRate: 0.08, dropoutRisk: 0.44, difficultyScore: 0.55,
+            difficultyLevel: 'medium', engagementScore: 0.65,
+            difficultyDetails: {
+                explanation: 'Тест: Средний — средний балл ниже 70%, несколько попыток',
+                metrics: [
+                    { name: 'Средний балл', value: 61, normalizedValue: 0.39, weight: 0.35, contribution: 0.137, interpretation: 'Средний результат' },
+                    { name: 'Среднее кол-во попыток', value: 2.4, normalizedValue: 0.70, weight: 0.25, contribution: 0.175, interpretation: 'Несколько попыток — требуется повторение' },
+                    { name: 'Процент завершивших', value: 75, normalizedValue: 0.25, weight: 0.20, contribution: 0.050, interpretation: 'Большинство завершили тест' },
+                    { name: 'Время выполнения', value: 680, normalizedValue: 0.76, weight: 0.20, contribution: 0.152, interpretation: 'Немного дольше ожидаемого' },
+                ],
+                suggestions: ['Упростить формулировки вопросов', 'Разбить тест на несколько меньших'],
+            },
+        },
+        {
+            moduleId: 105, sectionId: 3, step: 5,
+            moduleName: 'Циклы и итерации (видео)', moduleType: 'video',
+            studentCount: 10, avgDurationMs: 1140000, watchPercent: 0.38,
+            dropoutRate: 0.17, dropoutRisk: 0.72, difficultyScore: 0.72,
+            difficultyLevel: 'hard', engagementScore: 0.38,
+            difficultyDetails: {
+                explanation: 'Видео: Сложное — низкий просмотр (38%), много перемоток и пауз',
+                metrics: [
+                    { name: 'Процент просмотра', value: 38, normalizedValue: 0.62, weight: 0.30, contribution: 0.186, interpretation: 'Много не досматривают — возможно, слишком длинное' },
+                    { name: 'Перемотки назад', value: 6, normalizedValue: 1.00, weight: 0.25, contribution: 0.250, interpretation: 'Много перемоток — сложные моменты' },
+                    { name: 'Количество пауз', value: 9, normalizedValue: 0.90, weight: 0.20, contribution: 0.180, interpretation: 'Много пауз — требуется время на осмысление' },
+                    { name: 'Отвал после видео', value: 17, normalizedValue: 0.17, weight: 0.25, contribution: 0.042, interpretation: 'Умеренный отвал' },
+                ],
+                suggestions: ['Сократить длительность видео', 'Разбить на несколько коротких видео', 'Добавить субтитры или конспект'],
+            },
+        },
+        {
+            moduleId: 106, sectionId: 3, step: 6,
+            moduleName: 'Функции в Python (тест)', moduleType: 'quiz',
+            studentCount: 7, avgDurationMs: 950000, watchPercent: 0.40,
+            dropoutRate: 0.29, dropoutRisk: 0.81, difficultyScore: 0.74,
+            difficultyLevel: 'hard', engagementScore: 0.40,
+            difficultyDetails: {
+                explanation: 'Тест: Сложный — низкий средний балл (41%), много попыток',
+                metrics: [
+                    { name: 'Средний балл', value: 41, normalizedValue: 0.59, weight: 0.35, contribution: 0.207, interpretation: 'Низкий результат — студенты испытывают трудности' },
+                    { name: 'Среднее кол-во попыток', value: 3.1, normalizedValue: 1.00, weight: 0.25, contribution: 0.250, interpretation: 'Много попыток — материал сложный' },
+                    { name: 'Процент завершивших', value: 57, normalizedValue: 0.43, weight: 0.20, contribution: 0.086, interpretation: 'Много незавершённых — возможно, слишком сложный' },
+                    { name: 'Время выполнения', value: 950, normalizedValue: 1.00, weight: 0.20, contribution: 0.200, interpretation: 'Значительно дольше — вопросы сложные' },
+                ],
+                suggestions: ['Добавить обучающий материал перед тестом', 'Упростить формулировки вопросов', 'Разбить тест на несколько меньших'],
+            },
+        },
+        {
+            moduleId: 107, sectionId: 4, step: 7,
+            moduleName: 'Работа со списками и словарями', moduleType: 'assign',
+            studentCount: 6, avgDurationMs: 1560000, watchPercent: 0.62,
+            dropoutRate: 0.14, dropoutRisk: 0.55, difficultyScore: 0.46,
+            difficultyLevel: 'medium', engagementScore: 0.62,
+            difficultyDetails: {
+                explanation: 'Задание: Среднее — часть студентов сдала с опозданием',
+                metrics: [
+                    { name: 'Процент сдавших', value: 67, normalizedValue: 0.33, weight: 0.30, contribution: 0.099, interpretation: 'Часть не сдала' },
+                    { name: 'Средняя оценка', value: 62, normalizedValue: 0.38, weight: 0.30, contribution: 0.114, interpretation: 'Средние оценки' },
+                    { name: 'Сдали с опозданием', value: 33, normalizedValue: 0.33, weight: 0.20, contribution: 0.066, interpretation: 'Умеренное количество опозданий' },
+                    { name: 'Пересдачи', value: 17, normalizedValue: 0.34, weight: 0.20, contribution: 0.068, interpretation: 'Умеренное количество пересдач' },
+                ],
+                suggestions: ['Добавить примеры выполнения', 'Добавить промежуточную обратную связь'],
+            },
+        },
+        {
+            moduleId: 108, sectionId: 4, step: 8,
+            moduleName: 'Итоговый проект', moduleType: 'assign',
+            studentCount: 4, avgDurationMs: 5400000, watchPercent: 0.52,
+            dropoutRate: 0.33, dropoutRisk: 0.63, difficultyScore: 0.50,
+            difficultyLevel: 'medium', engagementScore: 0.52,
+            difficultyDetails: {
+                explanation: 'Задание: Среднее — много опозданий, низкие оценки',
+                metrics: [
+                    { name: 'Процент сдавших', value: 75, normalizedValue: 0.25, weight: 0.30, contribution: 0.075, interpretation: 'Большинство сдали' },
+                    { name: 'Средняя оценка', value: 52, normalizedValue: 0.48, weight: 0.30, contribution: 0.144, interpretation: 'Средние оценки' },
+                    { name: 'Сдали с опозданием', value: 50, normalizedValue: 0.50, weight: 0.20, contribution: 0.100, interpretation: 'Много опозданий — недостаточно времени' },
+                    { name: 'Пересдачи', value: 25, normalizedValue: 0.50, weight: 0.20, contribution: 0.100, interpretation: 'Умеренное количество пересдач' },
+                ],
+                suggestions: ['Увеличить срок выполнения', 'Разбить на несколько этапов', 'Добавить чек-лист требований'],
+            },
+        },
+    ];
+
+    const heatmap = {
+        courseId: 0,
+        totalModules: modules.length,
+        bottleneckModules: [105, 106],
+        generatedAt: new Date().toISOString(),
+        modules,
+    };
+
+    const funnel = {
+        courseId: 0,
+        totalStudents: 15,
+        finalRetentionRate: 0.27,
+        backwardNavigationRate: 0.18,
+        avgCourseCompletionTimeMs: 18720000,
+        avgSessionsPerUser: 6.3,
+        funnel: modules.map(m => ({
+            step: m.step,
+            moduleId: m.moduleId,
+            moduleName: m.moduleName,
+            studentsCount: m.studentCount,
+            retentionRate: parseFloat((m.studentCount / 15).toFixed(2)),
+        })),
+    };
+
+    const dropoff = {
+        courseId: 0,
+        totalEnrolled: 15,
+        totalStarted: 15,
+        totalCompleted: 4,
+        topDropoffChains: [[104, 105, 106], [103, 104, 105]],
+        methodologyExplanation: 'Процент отвала показывает долю студентов, которые открыли модуль, но не перешли к следующим модулям курса.',
+        dropoffPoints: [
+            {
+                moduleId: 106, moduleName: 'Функции в Python (тест)', moduleType: 'quiz', step: 6,
+                studentsEntered: 7, studentsDropped: 4, studentsContinued: 3,
+                dropoutRate: 0.57, avgTimeBeforeDropout: 1850000,
+            },
+            {
+                moduleId: 108, moduleName: 'Итоговый проект', moduleType: 'assign', step: 8,
+                studentsEntered: 4, studentsDropped: 2, studentsContinued: 2,
+                dropoutRate: 0.50, avgTimeBeforeDropout: 3200000,
+            },
+            {
+                moduleId: 105, moduleName: 'Циклы и итерации (видео)', moduleType: 'video', step: 5,
+                studentsEntered: 10, studentsDropped: 4, studentsContinued: 6,
+                dropoutRate: 0.40, avgTimeBeforeDropout: 920000,
+            },
+        ],
+    };
+
+    const video = {
+        courseId: 0,
+        totalVideos: 1,
+        videos: [{
+            courseId: 0,
+            moduleId: 105,
+            moduleName: 'Циклы и итерации (видео)',
+            mediaId: '/course/video/lecture_loops_python.mp4',
+            mediaType: 'video',
+            videoDurationMs: 1320000,
+            uniqueUsers: 10,
+            avgWatchPercent: 52,
+            avgFinalPercent: 45,
+            avgTotalWatchTime: 686000,
+            pauseCount: 38,
+            seekCount: 24,
+            seekBackwardCount: 18,
+            segments: [
+                { segment: '0-25',  avgWatchTime: 300000, segmentDuration: 330000, watchPercent: 91, watchShare: 0.35, pauseCount: 6,  isWellWatched: true,  isLeastWatched: false },
+                { segment: '25-50', avgWatchTime: 241000, segmentDuration: 330000, watchPercent: 73, watchShare: 0.28, pauseCount: 12, isWellWatched: false, isLeastWatched: false },
+                { segment: '50-75', avgWatchTime: 139000, segmentDuration: 330000, watchPercent: 42, watchShare: 0.22, pauseCount: 15, isWellWatched: false, isLeastWatched: false },
+                { segment: '75-100',avgWatchTime:  92000, segmentDuration: 330000, watchPercent: 28, watchShare: 0.15, pauseCount: 5,  isWellWatched: false, isLeastWatched: true  },
+            ],
+            pauseHotspots: [
+                { segment: '50-75', pauseCount: 15, avgPauseTime: 18000 },
+                { segment: '25-50', pauseCount: 12, avgPauseTime: 12000 },
+                { segment: '0-25',  pauseCount:  6, avgPauseTime:  8000 },
+            ],
+            seekPatterns: [
+                { fromSegment: '50-75', toSegment: '25-50', avgFromTimeMs: 660000, avgToTimeMs: 330000, isBackward: true,  count: 12 },
+                { fromSegment: '75-100',toSegment: '50-75', avgFromTimeMs: 990000, avgToTimeMs: 660000, isBackward: true,  count:  8 },
+                { fromSegment: '25-50', toSegment: '50-75', avgFromTimeMs: 330000, avgToTimeMs: 660000, isBackward: false, count:  4 },
+            ],
+        }],
+    };
+
+    const recommendations = {
+        courseId: 0,
+        recommendations: [
+            {
+                moduleId: 106, moduleName: 'Функции в Python (тест)',
+                issue: 'High dropout (57%); High difficulty (score: 0.74)',
+                recommendation: 'Add intermediate quizzes to check understanding | Simplify content or break into smaller parts',
+                priority: 'high',
+            },
+            {
+                moduleId: 105, moduleName: 'Циклы и итерации (видео)',
+                issue: 'High dropout (40%); Low watch rate (38%)',
+                recommendation: 'Simplify content or break into smaller parts | Review module duration and structure',
+                priority: 'high',
+            },
+            {
+                moduleId: 108, moduleName: 'Итоговый проект',
+                issue: 'High dropout (50%)',
+                recommendation: 'Add intermediate quizzes to check understanding | Provide supplementary learning materials',
+                priority: 'high',
+            },
+            {
+                moduleId: 107, moduleName: 'Работа со списками и словарями',
+                issue: 'High difficulty (score: 0.46)',
+                recommendation: 'Add additional explanations and examples | Provide supplementary learning materials',
+                priority: 'medium',
+            },
+            {
+                moduleId: 104, moduleName: 'Условные операторы (тест)',
+                issue: 'High difficulty (score: 0.55)',
+                recommendation: 'Add additional explanations and examples',
+                priority: 'medium',
+            },
+        ],
+    };
+
+    const courseInfo = { courseId: 0, courseName: 'Основы программирования на Python' };
+
+    return { courseInfo, heatmap, funnel, dropoff, video, recommendations };
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
     const today = new Date();
     const monthAgo = new Date();
     monthAgo.setDate(today.getDate() - 30);
-    
+
     document.getElementById('dateTo').value = today.toISOString().split('T')[0];
     document.getElementById('dateFrom').value = monthAgo.toISOString().split('T')[0];
-    
+
     loadCoursesList();
 });
 
@@ -48,43 +314,40 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 async function loadCoursesList() {
     const select = document.getElementById('courseSelect');
-    console.log('Loading courses list from:', API_BASE);
-    
+
+    const addDemoOption = () => {
+        const demo = document.createElement('option');
+        demo.value = 'demo';
+        demo.textContent = 'Демо: Основы программирования на Python';
+        demo.style.fontWeight = '600';
+        demo.style.color = '#4a7fbf';
+        select.appendChild(demo);
+    };
+
+    select.innerHTML = '<option value="">— Выберите курс —</option>';
+    addDemoOption();
+
     try {
         const response = await fetch(API_BASE);
-        console.log('Courses API response status:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-        console.log('Courses data received:', data);
-        
+
         if (data.courses && data.courses.length > 0) {
-            select.innerHTML = '<option value="">— Выберите курс —</option>';
-            
+            const sep = document.createElement('option');
+            sep.disabled = true;
+            sep.textContent = '──────────────────';
+            select.appendChild(sep);
+
             data.courses.forEach(course => {
                 const option = document.createElement('option');
                 option.value = course.id;
-                option.textContent = course.fullname;
-                if (course.shortname) {
-                    option.textContent += ` (${course.shortname})`;
-                }
+                option.textContent = course.fullname + (course.shortname ? ` (${course.shortname})` : '');
                 select.appendChild(option);
             });
-            
             coursesLoaded = true;
-            console.log('Courses loaded successfully:', data.courses.length);
-        } else {
-            console.warn('No courses found in response');
-            select.innerHTML = '<option value="">Курсы не найдены</option>';
-            showError('Курсы не найдены. Проверьте подключение к Moodle.');
         }
     } catch (error) {
-        console.error('Ошибка загрузки списка курсов:', error);
-        select.innerHTML = '<option value="">Ошибка загрузки</option>';
-        showError('Не удалось загрузить список курсов: ' + error.message);
+        console.warn('Курсы Moodle недоступны, только демо-режим:', error.message);
     }
 }
 
@@ -154,6 +417,21 @@ async function loadDashboard() {
 
     document.getElementById('loading').style.display = 'block';
     document.getElementById('dashboard').style.display = 'none';
+
+    // ----- DEMO MODE -----
+    if (courseId === 'demo') {
+        const { courseInfo, heatmap, dropoff, funnel, video, recommendations } = DEMO_DATA;
+        dashboardData = { courseInfo, heatmap, dropoff, funnel, video, recommendations };
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        document.querySelector('.header h1').innerHTML =
+            `<i class="fas fa-chart-pie"></i> ${courseInfo.courseName} <span style="font-size:0.6em;background:#e8f0fa;color:#4a7fbf;padding:2px 8px;border-radius:12px;vertical-align:middle;font-weight:600;">DEMO</span>`;
+        renderOverview(heatmap, dropoff, funnel);
+        renderAnalytics(heatmap, dropoff);
+        renderMedia(video, recommendations);
+        return;
+    }
+    // ----- END DEMO MODE -----
 
     try {
         const [courseInfo, heatmap, dropoff, funnel, video, recommendations] = await Promise.all([
@@ -569,6 +847,14 @@ function getModuleTypeName(moduleType) {
 /**
  * Генерация HTML для детализации сложности (tooltip)
  */
+function formatMetricValue(name, value) {
+    if (typeof value !== 'number') return value;
+    const timeNames = ['время', 'time'];
+    const isTime = timeNames.some(t => name.toLowerCase().includes(t));
+    if (isTime && value > 10) return formatDuration(value * 1000);
+    return value % 1 === 0 ? value.toString() : value.toFixed(1);
+}
+
 function renderDifficultyDetails(details) {
     if (!details || !details.metrics) return '';
     
@@ -581,7 +867,7 @@ function renderDifficultyDetails(details) {
             <div class="difficulty-metric">
                 <div class="metric-header">
                     <span class="metric-name">${m.name}</span>
-                    <span class="metric-value">${typeof m.value === 'number' ? m.value.toFixed(1) : m.value}</span>
+                    <span class="metric-value">${formatMetricValue(m.name, m.value)}</span>
                 </div>
                 <div class="metric-bar">
                     <div class="metric-bar-fill ${barClass}" style="width: ${barWidth}%"></div>

@@ -4,7 +4,6 @@ from datetime import datetime
 from enum import Enum
 
 
-# ========== ENUMS ==========
 
 class DifficultyLevel(str, Enum):
     EASY = "easy"
@@ -12,7 +11,6 @@ class DifficultyLevel(str, Enum):
     HARD = "hard"
 
 
-# ========== МОДЕЛИ ДЛЯ ДЕТАЛИЗАЦИИ СЛОЖНОСТИ ==========
 
 class DifficultyMetricDetail(BaseModel):
     name: str = Field(description="Название метрики (для UI)")
@@ -29,7 +27,6 @@ class DifficultyDetails(BaseModel):
     suggestions: List[str] = Field(default_factory=list, description="Рекомендации по улучшению")
 
 
-# ========== МОДЕЛИ ДЛЯ HEATMAP ==========
 
 class ModuleHeatmap(BaseModel):
     moduleId: int
@@ -53,7 +50,6 @@ class ModuleHeatmap(BaseModel):
     dropoutRate: float = Field(ge=0.0, le=1.0, description="Процент отвала после модуля (0-1)")
 
 
-# ========== МОДЕЛИ ДЛЯ DROPOFF ==========
 
 class DropoffPoint(BaseModel):
     moduleId: int
@@ -67,7 +63,6 @@ class DropoffPoint(BaseModel):
     avgTimeBeforeDropout: Optional[float] = Field(None, description="Среднее время в модуле до отвала (миллисекунды)")
 
 
-# ========== МОДЕЛИ ДЛЯ FUNNEL ==========
 
 class FunnelStep(BaseModel):
     step: int = Field(description="Порядковый номер шага")
@@ -118,7 +113,6 @@ class SectionEngagement(BaseModel):
     modules: List[int] = Field(description="ID модулей в секции")
 
 
-# ========== МОДЕЛИ ДЛЯ РЕКОМЕНДАЦИЙ ==========
 
 class Recommendation(BaseModel):
     moduleId: int
@@ -134,7 +128,6 @@ class RecommendationsResponse(BaseModel):
     generatedAt: datetime = Field(default_factory=datetime.now)
 
 
-# ========== МОДЕЛИ ДЛЯ ИНФОРМАЦИИ О КУРСЕ ==========
 
 class CourseListItem(BaseModel):
     id: int = Field(description="ID курса в Moodle")
@@ -159,7 +152,6 @@ class CourseInfo(BaseModel):
     generatedAt: datetime = Field(default_factory=datetime.now)
 
 
-# ========== МОДЕЛИ ДЛЯ VIDEO ANALYTICS ==========
 
 class VideoSegmentAnalytics(BaseModel):
     segment: str = Field(description="Сегмент видео: 0-25, 25-50, 50-75, 75-100")

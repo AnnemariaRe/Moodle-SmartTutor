@@ -225,9 +225,13 @@ async def get_funnel(
         funnel_steps = []
         for i, m in enumerate(sorted_modules):
             students_count = m.get("studentCount", 0)
+            if total_students > 0:
+                students_count = min(students_count, total_students)
+            if students_count < 5:
+                continue
             retention_rate = students_count / total_students if total_students > 0 else 0.0
             retention_rate = min(1.0, max(0.0, retention_rate))
-            
+
             funnel_steps.append(FunnelStep(
                 step=m.get("step", i + 1),
                 moduleId=m.get("moduleId"),

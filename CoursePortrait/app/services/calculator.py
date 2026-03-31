@@ -72,7 +72,8 @@ class MetricsCalculator:
                 
                 difficulty_result = DifficultyCalculatorFactory.calculate_difficulty(module_data)
                 difficulty_score = difficulty_result.difficulty_score
-                
+                module["difficultyLevel"] = difficulty_result.difficulty_level
+
                 module["difficultyDetails"] = {
                     "metrics": [
                         {
@@ -95,6 +96,12 @@ class MetricsCalculator:
                     watch_percent if watch_percent is not None else 0.5,
                     dropout_rate
                 )
+                if difficulty_score < 0.4:
+                    module["difficultyLevel"] = "easy"
+                elif difficulty_score < 0.7:
+                    module["difficultyLevel"] = "medium"
+                else:
+                    module["difficultyLevel"] = "hard"
                 module["difficultyDetails"] = None
             
             module["dropoutRisk"] = dropout_risk

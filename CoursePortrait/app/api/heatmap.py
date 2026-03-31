@@ -125,11 +125,7 @@ async def get_heatmap(
         
         heatmap_modules = []
         for m in modules_with_scores:
-            difficulty_str = predictor.predict_difficulty([
-                m.get("avgDurationMs", 0) / 1000.0,
-                m.get("watchPercent", 0.5),
-                m.get("step", 1)
-            ])
+            difficulty_str = m.get("difficultyLevel", "medium")
             
             moodle_module_type = m.get("moduleType")
             has_video = m.get("watchPercent") is not None and m.get("watchPercent", 0) > 0
