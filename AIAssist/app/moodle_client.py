@@ -33,11 +33,6 @@ async def get_course_contents(course_id: int) -> List[Dict[str, Any]]:
     return data if isinstance(data, list) else []
 
 
-async def get_courses() -> List[Dict[str, Any]]:
-    data = await _get("core_course_get_courses")
-    return data if isinstance(data, list) else []
-
-
 async def get_lesson_pages(lesson_id: int) -> List[Dict[str, Any]]:
     data = await _get("mod_lesson_get_pages", {"lessonid": lesson_id})
     return [item["page"] for item in data.get("pages", []) if "page" in item]

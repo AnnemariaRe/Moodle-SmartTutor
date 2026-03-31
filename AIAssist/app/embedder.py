@@ -24,5 +24,3 @@ def embed_batch(texts: List[str]) -> np.ndarray:
     return load_model().encode(texts, normalize_embeddings=True, show_progress_bar=False)
 
 
-def embed_one(text: str) -> np.ndarray:
-    return embed_batch([text])[0]
