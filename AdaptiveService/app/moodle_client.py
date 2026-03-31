@@ -24,6 +24,7 @@ class ActivityData:
     type: str       # page | quiz | assign | book
     name: str
     text: str
+    visible: bool = True  # False if module is hidden from students in Moodle
 
 
 def _strip_html(html: str) -> str:
@@ -179,6 +180,9 @@ class MoodleClient:
                     logger.debug("cmid=%s (%s) has empty text — skipping", cmid, modname)
                     continue
 
+                # uservisible reflects student-facing visibility (hidden modules = False)
+                visible = bool(module.get("uservisible", module.get("visible", 1)))
+
                 activities.append(
                     ActivityData(
                         cmid=cmid,
@@ -188,6 +192,7 @@ class MoodleClient:
                         type=modname,
                         name=name,
                         text=text[:TEXT_MAX_CHARS],
+                        visible=visible,
                     )
                 )
 

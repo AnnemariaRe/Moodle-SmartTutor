@@ -106,11 +106,13 @@ async def auto_extract_graph(
                 concept_id=primary_concept_id,
                 type=activity.type,
                 difficulty=difficulty,
+                visible=activity.visible,
             )
             db.add(item)
             await db.flush()
             content_items_created += 1
         else:
+            existing_item.visible = activity.visible
             item = existing_item
 
         # Track first appearance of every mentioned concept

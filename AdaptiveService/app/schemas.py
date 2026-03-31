@@ -37,6 +37,7 @@ class ContentItemCreate(BaseModel):
     concept_id: int
     type: str  # video | text | quiz
     difficulty: float = 0.5
+    visible: bool = True
 
 
 class ContentItemOut(BaseModel):
@@ -47,6 +48,7 @@ class ContentItemOut(BaseModel):
     type: str
     difficulty: float
     role: str = "regular"
+    visible: bool = True
 
     model_config = {"from_attributes": True}
 

@@ -111,6 +111,7 @@ async def get_recommendations(
             ContentItem.course_id == course_id,
             ContentItem.concept_id == concept_id,
             ContentItem.role != "placement",
+            ContentItem.visible == True,
         ]
         if exclude_cmid is not None:
             direct_filter.append(ContentItem.moodle_cmid != exclude_cmid)
@@ -124,6 +125,7 @@ async def get_recommendations(
                 ContentItem.course_id == course_id,
                 AssessmentMap.concept_id == concept_id,
                 ContentItem.role != "placement",
+                ContentItem.visible == True,
             ]
             if exclude_cmid is not None:
                 am_filter.append(ContentItem.moodle_cmid != exclude_cmid)

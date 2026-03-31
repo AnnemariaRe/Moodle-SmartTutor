@@ -182,7 +182,7 @@ async def get_student_recommendations(
                 )
             )
         ).scalars().first()
-        if placement_item and (cmid is None or placement_item.moodle_cmid != cmid):
+        if placement_item and placement_item.visible and (cmid is None or placement_item.moodle_cmid != cmid):
             placement_concept = (
                 await db.execute(select(Concept).where(Concept.id == placement_item.concept_id))
             ).scalars().first()
@@ -295,6 +295,7 @@ async def get_student_recommendations(
                             ContentItem.course_id == course_id,
                             ContentItem.concept_id.in_(target_ids),
                             ContentItem.role != "placement",
+                            ContentItem.visible == True,
                             ContentItem.moodle_cmid != cmid,
                         )
                     )
@@ -310,6 +311,7 @@ async def get_student_recommendations(
                                 ContentItem.course_id == course_id,
                                 AssessmentMap.concept_id.in_(target_ids),
                                 ContentItem.role != "placement",
+                                ContentItem.visible == True,
                                 ContentItem.moodle_cmid != cmid,
                             )
                         )

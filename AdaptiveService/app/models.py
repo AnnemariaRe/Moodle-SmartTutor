@@ -64,6 +64,7 @@ class ContentItem(Base):
     type: Mapped[str] = mapped_column(String(50), nullable=False)  # video | text | quiz
     difficulty: Mapped[float] = mapped_column(Float, nullable=False, default=0.5)
     role: Mapped[str] = mapped_column(String(20), nullable=False, default="regular")  # regular | placement
+    visible: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     concept: Mapped["Concept"] = relationship("Concept", back_populates="content_items")
     assessment_maps: Mapped[list["AssessmentMap"]] = relationship(
