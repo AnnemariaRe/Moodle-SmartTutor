@@ -1,9 +1,8 @@
 """
-Phase 2: Fine-tune DKT on real course data from DB, then export weights to NumPy (.npz + skill_map.json).
-
+Fine-tune DKT on real course data from DB
 Usage:
     python dkt_finetune.py --course 10
-    python dkt_finetune.py --course 10 --no-finetune   # ASSIST09 fallback
+    python dkt_finetune.py --course 10 --no-finetune
 """
 
 from __future__ import annotations
@@ -12,7 +11,6 @@ import argparse
 import json
 import pathlib
 import random
-import shutil
 
 import numpy as np
 import pandas as pd
@@ -25,7 +23,7 @@ from torch.utils.data import DataLoader, Dataset
 
 SEED = 42
 HIDDEN_SIZE = 128
-# Threshold must match mastery.py MASTERY_THRESHOLD
+# MASTERY_THRESHOLD
 THRESH = 0.7
 MODELS_DIR = pathlib.Path(__file__).parent.parent / "models"
 
@@ -122,7 +120,7 @@ def evaluate(model, loader, device) -> float:
 
 
 def load_course_sequences(course_id: int) -> tuple[dict[int, int], list]:
-    """Load and preprocess course events from DB. Returns (concept2idx, sequences)."""
+    """Load and preprocess course events from DB"""
     conn_a = psycopg2.connect(ADAPTIVE_DSN)
     cmid_df = pd.read_sql(CMID_QUERY, conn_a, params={"course_id": course_id})
     conn_a.close()
@@ -161,7 +159,6 @@ def load_course_sequences(course_id: int) -> tuple[dict[int, int], list]:
     events_df["concept_id"] = events_df["cmid"].map(cmid_to_concept)
     events_df = events_df.dropna(subset=["concept_id"]).copy()
     events_df["concept_id"] = events_df["concept_id"].astype(int)
-    # Binarise: consistent with THRESH = mastery.py MASTERY_THRESHOLD
     events_df["correct"] = (events_df["rel_score"] >= THRESH).astype(int)
 
     unique_concepts = sorted(events_df["concept_id"].unique())
@@ -180,7 +177,7 @@ def load_course_sequences(course_id: int) -> tuple[dict[int, int], list]:
 
 
 def export_weights(model: nn.Module, course_id: int, concept2idx: dict, models_dir: pathlib.Path) -> None:
-    """Export PyTorch LSTM → NumPy .npz + skill_map.json for inference without PyTorch."""
+    """Export PyTorch LSTM → NumPy .npz + skill_map.json"""
     H = model.hidden_size
     wih = model.lstm.weight_ih_l0.detach().cpu().numpy()
     whh = model.lstm.weight_hh_l0.detach().cpu().numpy()
@@ -247,7 +244,6 @@ def finetune(args) -> None:
     concept2idx, course_seqs = load_course_sequences(args.course)
     num_skills = len(concept2idx)
 
-    # Load pretrained ASSIST09 model
     pretrain_path = MODELS_DIR / "dkt_assist09_best.pth"
     if not pretrain_path.exists():
         raise FileNotFoundError(f"Pretrained model not found: {pretrain_path}\nRun dkt_pretrain.py first.")

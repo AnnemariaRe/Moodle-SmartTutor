@@ -1,5 +1,5 @@
 """
-Phase 1: Pre-train DKT on ASSIST09 dataset.
+Pre-train DKT on ASSIST09 dataset.
 
 Usage:
     python dkt_pretrain.py [--data skill_builder_data.csv] [--epochs 10]
@@ -36,7 +36,6 @@ def set_seed(seed: int = SEED) -> None:
 
 class DKTDataset(Dataset):
     """
-    Each sample is a student sequence.
     Input:  one-hot(skill_idx * 2 + correct), shape [T, 2*num_skills]
     Target: correct_{t+1} for skill_{t+1}
     """

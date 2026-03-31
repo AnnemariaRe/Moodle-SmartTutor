@@ -1,6 +1,4 @@
 """
-Phase 3: Verify exported NumPy weights and run sanity checks.
-
 Usage:
     python dkt_export.py --course 10
     python dkt_export.py --course 10 --seq-file sample_seq.json   # custom sequence
