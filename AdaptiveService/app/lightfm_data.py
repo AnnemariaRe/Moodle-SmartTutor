@@ -1,22 +1,3 @@
-"""
-Prepare sparse matrices for LightFM training from AdaptiveService DB.
-
-Interaction weight per (student, content_item):
-  - If student has attempt stats for the concept → weight = num_correct / num_attempts
-  - Else if student has mastery (e.g., from placement test) → weight = mastery
-  - Items are linked to students via concept: content_item.concept_id matches
-    the concept the student interacted with.
-
-User features (per student):
-  - mastery_c{X}: mastery for concept X
-  - fail_rate_c{X}: 1 - num_correct/num_attempts for concept X
-  - kt_pred_c{X}: P(correct) from DKT model (if available, else same as mastery)
-
-Item features (per content_item):
-  - type one-hot: type_page, type_quiz, type_assign, type_lesson, type_book
-  - difficulty bucket: diff_easy (<0.4), diff_medium (0.4–0.7), diff_hard (>0.7)
-  - concept membership: concept_c{X} = 1.0 for primary, weight for secondary (assessment_map)
-"""
 from __future__ import annotations
 
 import logging
@@ -57,7 +38,6 @@ async def prepare_lightfm_data(
 ) -> LightFMDataset | None:
     """Build LightFMDataset for a course. Returns None if not enough data."""
 
-    # Content items (columns)
     items = (
         await db.execute(
             select(ContentItem).where(
@@ -92,7 +72,6 @@ async def prepare_lightfm_data(
         if col is not None:
             concept_to_items.setdefault(am.concept_id, []).append((col, am.weight))
 
-    # Student data
     masteries_raw = (
         await db.execute(
             select(StudentConceptMastery).where(
@@ -126,7 +105,6 @@ async def prepare_lightfm_data(
         (s.student_id, s.concept_id): (s.num_attempts, s.num_correct) for s in stats_raw
     }
 
-    # Interaction matrix
     all_concept_ids_in_items = set(concept_to_items.keys())
 
     interaction_acc: dict[tuple[int, int], float] = {}
@@ -155,7 +133,6 @@ async def prepare_lightfm_data(
     rows, cols, data = zip(*[(r, c, v) for (r, c), v in interaction_acc.items()])
     interactions = csr_matrix((data, (rows, cols)), shape=(n_users, n_items), dtype=np.float32)
 
-    # Item features
     all_concept_ids = sorted(all_concept_ids_in_items)
     concept_feat_idx = {cid: i for i, cid in enumerate(all_concept_ids)}
     n_concept_feats = len(all_concept_ids)
@@ -198,7 +175,6 @@ async def prepare_lightfm_data(
         dtype=np.float32,
     )
 
-    # User features
     # [mastery_c0 ... | fail_rate_c0 ... | kt_pred_c0 ...]
     # kt_pred block: DKT predictions if model available, else copy of mastery
     from app.dkt import get_dkt_predictions
