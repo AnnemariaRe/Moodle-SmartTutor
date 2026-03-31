@@ -88,7 +88,7 @@ async def get_student_history(
 
 def hybrid_bkt_recent(history: List[Tuple[str, float]]) -> str:
     if not history:
-        return "easy"  # cold start
+        return "easy"
 
     # Recent average — last 5 scores capture current form
     recent_scores = [s for _, s in history[-5:]]

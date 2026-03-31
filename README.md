@@ -12,11 +12,11 @@
 
 | Сервис | Описание |
 |--------|----------|
-| **TrackingService** | Принимает события Moodle по HTTP, сохраняет в PostgreSQL, публикует в RabbitMQ |
-| **AdaptiveService** | Граф знаний, отслеживание уровня освоения (BKT), рекомендации (LightFM + правиловая модель), предсказания DKT |
-| **AIAssist** | RAG-ассистент для ответов на вопросы по курсу (pgvector + OpenAI) |
-| **TaskGenerator** | Генерация персонализированных тренировочных заданий на основе уровня освоения (OpenAI) |
-| **CoursePortrait** | Аналитика курсов: тепловые карты, предсказание отвала (XGBoost), анализ сложности, интеграция с Яндекс Метрикой |
+| [**TrackingService**](TrackingService/README.md) | Принимает события Moodle по HTTP, сохраняет в PostgreSQL, публикует в RabbitMQ |
+| [**AdaptiveService**](AdaptiveService/README.md) | Граф знаний, отслеживание уровня освоения (BKT), рекомендации (LightFM + правиловая модель), предсказания DKT |
+| [**AIAssist**](AIAssist/README.md) | RAG-ассистент для ответов на вопросы по курсу (pgvector + OpenAI) |
+| [**TaskGenerator**](TaskGenerator/README.md) | Генерация персонализированных тренировочных заданий на основе уровня освоения (OpenAI) |
+| [**CoursePortrait**](CoursePortrait/README.md) | Аналитика курсов: тепловые карты, предсказание отвала (XGBoost), анализ сложности, интеграция с Яндекс Метрикой |
 
 ---
 
@@ -144,22 +144,3 @@ networks:
   moodle_shared_net:
     external: true
 ```
-
----
-
-## Обучение ML-моделей CoursePortrait
-
-Скрипты обучения находятся в `CoursePortrait/training/`. Для переобучения моделей предсказания отвала и сложности:
-
-```bash
-# Вариант 1: Экспорт реальных данных из TrackingService
-python training/export_from_tracking.py --db-url postgresql://tracking:tracking@localhost:5435/tracking
-
-# Вариант 2: Использование публичного датасета KDD Cup 2015
-python training/prepare_kdd_dataset.py datasets/act-mooc datasets/kdd_prepared.csv
-
-# Обучение моделей (результат сохраняется в models/)
-python training/prep_and_train.py --mooc-data datasets/my_data.csv
-```
-
-Обученные модели (`.pkl`) загружаются CoursePortrait при запуске из директории `models/`.
