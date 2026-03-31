@@ -15,12 +15,6 @@ except ImportError:
     ONNX_AVAILABLE = False
     print("Warning: skl2onnx not available, models will be saved as pickle")
 
-try:
-    KAGGLE_AVAILABLE = True
-except ImportError:
-    KAGGLE_AVAILABLE = False
-    print("Warning: kagglehub not available, will use local datasets only")
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 os.makedirs(BASE_DIR / "models", exist_ok=True)
 os.makedirs(BASE_DIR / "datasets", exist_ok=True)
