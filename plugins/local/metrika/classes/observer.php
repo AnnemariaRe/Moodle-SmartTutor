@@ -130,6 +130,7 @@ class observer {
     }
 
     public static function lesson_question_answered($event) {
+        if (self::is_admin($event->userid)) return;
         $data = [
             'event_id'    => uniqid('', true),
             'ts'          => time(),

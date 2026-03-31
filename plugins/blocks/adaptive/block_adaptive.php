@@ -169,14 +169,6 @@ class block_adaptive extends block_base {
         return $html;
     }
 
-    private function method_label(string $method): string {
-        $labels = [
-            'lightfm_hybrid' => get_string('method_lightfm', 'block_adaptive'),
-            'rule_based'     => get_string('method_rule_based', 'block_adaptive'),
-        ];
-        return $labels[$method] ?? $method;
-    }
-
     // ── HTTP helper ──────────────────────────────────────────────────────────
 
     private function fetch_json(string $url): ?stdClass {
