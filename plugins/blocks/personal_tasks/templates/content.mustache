@@ -1,0 +1,13 @@
+{{!
+    @template block_personal_tasks/content
+    Template for Personal Tasks block.
+}}
+<div class="block-personal-tasks">
+    <div class="mb-2">
+        <button id="pt-generate" class="btn btn-primary btn-sm w-100">
+            {{#str}} generate_button, block_personal_tasks {{/str}}
+        </button>
+    </div>
+    <div id="pt-status" class="text-muted small mb-2" aria-live="polite"></div>
+    <div id="pt-tasks-container"></div>
+</div>
