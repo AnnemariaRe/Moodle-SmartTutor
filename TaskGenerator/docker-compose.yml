@@ -1,0 +1,48 @@
+services:
+  personalized-tasks:
+    build: .
+    ports:
+      - "127.0.0.1:${TASKS_PORT:-8004}:8004"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tasks}:${POSTGRES_PASSWORD:-tasks}@tasks-postgres:5432/${POSTGRES_DB:-tasks}
+      ADAPTIVE_URL: ${ADAPTIVE_URL:-http://adaptive-service:8002}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
+    depends_on:
+      tasks-postgres:
+        condition: service_healthy
+    networks:
+      - internal
+      - adaptive_shared_net
+      - moodle_shared_net
+    restart: unless-stopped
+
+  tasks-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tasks}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tasks}
+      POSTGRES_DB: ${POSTGRES_DB:-tasks}
+    ports:
+      - "127.0.0.1:${POSTGRES_EXTERNAL_PORT:-5439}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tasks} -d ${POSTGRES_DB:-tasks}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  internal:
+    driver: bridge
+  adaptive_shared_net:
+    external: true
+  moodle_shared_net:
+    external: true

@@ -2,10 +2,10 @@ services:
   tracking-service:
     build: .
     ports:
-      - "8001:8001"
+      - "${TRACKING_PORT:-8001}:8001"
     environment:
-      DATABASE_URL: postgresql+asyncpg://tracking:tracking@postgres:5432/tracking
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tracking}:${POSTGRES_PASSWORD:-tracking}@postgres:5432/${POSTGRES_DB:-tracking}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672/
     depends_on:
       postgres:
         condition: service_healthy
@@ -19,15 +19,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: tracking
-      POSTGRES_PASSWORD: tracking
-      POSTGRES_DB: tracking
+      POSTGRES_USER: ${POSTGRES_USER:-tracking}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tracking}
+      POSTGRES_DB: ${POSTGRES_DB:-tracking}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - internal
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tracking -d tracking"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tracking} -d ${POSTGRES_DB:-tracking}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -35,6 +35,9 @@ services:
 
   rabbitmq:
     image: rabbitmq:3.13-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:

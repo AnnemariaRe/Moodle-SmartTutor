@@ -2,13 +2,12 @@ services:
   adaptive-service:
     build: .
     ports:
-      - "127.0.0.1:8002:8002"
+      - "127.0.0.1:${ADAPTIVE_PORT:-8002}:8002"
     environment:
-      DATABASE_URL: postgresql+asyncpg://adaptive:adaptive@postgres:5432/adaptive
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
-      MOODLE_URL: http://moodle.local:8081
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-adaptive}:${POSTGRES_PASSWORD:-adaptive}@postgres:5432/${POSTGRES_DB:-adaptive}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672/
+      MOODLE_URL: ${MOODLE_URL:-http://moodle.local:8081}
       MOODLE_TOKEN: ${MOODLE_TOKEN:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -16,6 +15,7 @@ services:
       - internal
       - rabbitmq_shared_net
       - moodle_shared_net
+      - adaptive_shared_net
     restart: unless-stopped
     extra_hosts:
       - "moodle.local:host-gateway"
@@ -23,40 +23,20 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: adaptive
-      POSTGRES_PASSWORD: adaptive
-      POSTGRES_DB: adaptive
+      POSTGRES_USER: ${POSTGRES_USER:-adaptive}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-adaptive}
+      POSTGRES_DB: ${POSTGRES_DB:-adaptive}
     ports:
-      - "127.0.0.1:5434:5432"
+      - "127.0.0.1:${POSTGRES_EXTERNAL_PORT:-5434}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - internal
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U adaptive -d adaptive"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-adaptive} -d ${POSTGRES_DB:-adaptive}"]
       interval: 5s
       timeout: 5s
       retries: 10
-    restart: unless-stopped
-
-  # Ежедневно переобучает LightFM для всех курсов (в 3:00)
-  scheduler:
-    image: curlimages/curl:latest
-    entrypoint: >
-      sh -c "
-        echo 'Scheduler started. Training runs daily at 03:00.';
-        while true; do
-          sleep_seconds=$$(( (3600 * 3 - $(date +%s) % 86400 + 86400) % 86400 ));
-          sleep $$sleep_seconds;
-          echo \"[$(date)] Running LightFM training...\";
-          curl -s -X POST 'http://adaptive-service:8002/v1/admin/train-lightfm?course_id=1' || true;
-          sleep 60;
-        done
-      "
-    networks:
-      - internal
-    depends_on:
-      - adaptive-service
     restart: unless-stopped
 
 volumes:
@@ -68,4 +48,6 @@ networks:
   rabbitmq_shared_net:
     external: true
   moodle_shared_net:
+    external: true
+  adaptive_shared_net:
     external: true
