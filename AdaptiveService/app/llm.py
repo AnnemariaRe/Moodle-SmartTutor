@@ -1,38 +1,34 @@
 """
 LLM-based concept extraction with batching.
-
-Instead of one API call per activity, we pack BATCH_SIZE activities into a
-single prompt. For a 73-activity course this reduces calls from 73 → ~13,
-cutting cost and eliminating rate-limit pressure. Batches run sequentially
-(no concurrency), with automatic retry on 429 errors.
 """
 import asyncio
 import json
 import logging
+import os
 import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-import anthropic
+from openai import AsyncOpenAI, RateLimitError, APIError
 
 if TYPE_CHECKING:
     from app.moodle_client import ActivityData
 
 logger = logging.getLogger(__name__)
 
-EXTRACTION_MODEL = "claude-haiku-4-5-20251001"
+EXTRACTION_MODEL = "gpt-4o-mini"
 BATCH_SIZE = 6          # activities per LLM call
 TEXT_PER_ACTIVITY = 1500  # chars per activity inside a batch prompt
 MAX_RETRIES = 3
 RETRY_BASE_SECONDS = 15  # wait = RETRY_BASE_SECONDS * 2^attempt on 429
 
-_client: anthropic.AsyncAnthropic | None = None
+_client: AsyncOpenAI | None = None
 
 
-def _get_client() -> anthropic.AsyncAnthropic:
+def _get_client() -> AsyncOpenAI:
     global _client
     if _client is None:
-        _client = anthropic.AsyncAnthropic()
+        _client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     return _client
 
 
@@ -122,13 +118,13 @@ async def _extract_one_batch(
 async def _call_with_retry(prompt: str) -> str:
     for attempt in range(MAX_RETRIES):
         try:
-            message = await _get_client().messages.create(
+            response = await _get_client().chat.completions.create(
                 model=EXTRACTION_MODEL,
                 max_tokens=1500,
                 messages=[{"role": "user", "content": prompt}],
             )
-            return message.content[0].text.strip()
-        except anthropic.RateLimitError:
+            return response.choices[0].message.content.strip()
+        except RateLimitError:
             if attempt < MAX_RETRIES - 1:
                 wait = RETRY_BASE_SECONDS * (2 ** attempt)
                 logger.warning(
@@ -139,7 +135,7 @@ async def _call_with_retry(prompt: str) -> str:
             else:
                 logger.error("Rate limit exceeded after %d attempts", MAX_RETRIES)
                 return ""
-        except anthropic.APIError as exc:
+        except APIError as exc:
             logger.error("LLM API error: %s", exc)
             return ""
     return ""

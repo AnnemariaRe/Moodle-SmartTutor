@@ -8,6 +8,8 @@ pydantic-settings==2.6.1
 python-dotenv==1.0.1
 # Moodle REST API client
 httpx==0.28.1
+# LLM
+openai==1.54.4
 # HTML stripping
 beautifulsoup4==4.12.3
 # LightFM hybrid recommender
