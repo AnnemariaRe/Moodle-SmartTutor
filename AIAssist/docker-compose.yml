@@ -1,0 +1,53 @@
+services:
+  ai-assistant:
+    build: .
+    container_name: ai-assistant
+    ports:
+      - "${AI_ASSIST_PORT:-8003}:8003"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-assistant}:${POSTGRES_PASSWORD:-assistant}@postgres-ai:5432/${POSTGRES_DB:-assistant}
+      MOODLE_URL: ${MOODLE_URL:-http://localhost:8081}
+      MOODLE_TOKEN: ${MOODLE_TOKEN:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+    depends_on:
+      postgres-ai:
+        condition: service_healthy
+    networks:
+      - ai-net
+      - trackingservice_internal
+      - moodle_shared_net
+    extra_hosts:
+      - "moodle.local:host-gateway"
+      - "localhost:host-gateway"
+    restart: unless-stopped
+
+  postgres-ai:
+    image: pgvector/pgvector:pg16
+    container_name: postgres-ai
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-assistant}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-assistant}
+      POSTGRES_DB: ${POSTGRES_DB:-assistant}
+    volumes:
+      - pgdata-ai:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-assistant} -d ${POSTGRES_DB:-assistant}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ai-net
+    restart: unless-stopped
+
+volumes:
+  pgdata-ai:
+
+networks:
+  ai-net:
+    driver: bridge
+  trackingservice_internal:
+    external: true
+  moodle_shared_net:
+    external: true

@@ -1,0 +1,23 @@
+# Environment files with secrets
+.env
+!.env.example
+
+.DS_Store
+MoodleMetrics/target/
+MoodleMetrics/.idea
+AdaptiveService/.idea/
+AdaptiveService/.claude/
+AdaptiveService/.venv-notebooks/
+TaskGenerator/.idea/
+TaskGenerator/tests/__pycache__/
+AdaptiveService/app/__pycache__/
+AdaptiveService/tests/__pycache__/
+TaskGenerator/app/__pycache__/
+AdaptiveService/notebooks/dkt_training.ipynb
+CoursePortrait/models/
+AdaptiveService/models/
+AdaptiveService/notebooks/lightfm_eval.ipynb
+AdaptiveService/notebooks/dkt_training.ipynb
+AdaptiveService/.venv-notebooks/
+AdaptiveService/models/dkt_skill_map_10_assist_only.json
+AdaptiveService/models/dkt_skill_map_10.json

@@ -1,0 +1,53 @@
+services:
+  adaptive-service:
+    build: .
+    ports:
+      - "127.0.0.1:${ADAPTIVE_PORT:-8002}:8002"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-adaptive}:${POSTGRES_PASSWORD:-adaptive}@postgres:5432/${POSTGRES_DB:-adaptive}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672/
+      MOODLE_URL: ${MOODLE_URL:-http://moodle.local:8081}
+      MOODLE_TOKEN: ${MOODLE_TOKEN:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal
+      - rabbitmq_shared_net
+      - moodle_shared_net
+      - adaptive_shared_net
+    restart: unless-stopped
+    extra_hosts:
+      - "moodle.local:host-gateway"
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-adaptive}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-adaptive}
+      POSTGRES_DB: ${POSTGRES_DB:-adaptive}
+    ports:
+      - "127.0.0.1:${POSTGRES_EXTERNAL_PORT:-5434}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-adaptive} -d ${POSTGRES_DB:-adaptive}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  internal:
+    driver: bridge
+  rabbitmq_shared_net:
+    external: true
+  moodle_shared_net:
+    external: true
+  adaptive_shared_net:
+    external: true
