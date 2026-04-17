@@ -28,6 +28,7 @@ async def auto_extract_graph(
             pass
 
     activities = await client.fetch_activities(course_id)
+    activities = [a for a in activities if a.visible]
     if not activities:
         return {"activities_processed": 0, "concepts_total": 0, "concepts_new": 0, "content_items_created": 0}
 

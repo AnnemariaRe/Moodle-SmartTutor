@@ -37,10 +37,11 @@ class MetricsCalculator:
                 else:
                     watch_percent = 0.5
             
+            event_count = module.get("studentCount", 1)
             features = [
                 avg_duration / 1000.0,
                 watch_percent if watch_percent is not None else 0.5,
-                step
+                event_count,
             ]
             
             dropout_risk = predictor.predict_dropout(features)

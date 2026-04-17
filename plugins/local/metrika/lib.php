@@ -11,17 +11,17 @@ function local_metrika_before_http_headers() {
         return;
     }
 
-    // Лог, чтобы видеть, что хук сработал
+    // Log to confirm the hook fired
     $PAGE->requires->js_init_code(
         "console.log('[metrika] hook, counterId=$counterid');"
     );
 
-    // Прокидываем counterId на всех страницах
+    // Expose counterId on every page
     $PAGE->requires->js_init_code(
         "window.M = window.M || {}; window.M.metrika = {counterId: '$counterid'};"
     );
 
-    // Прокидываем courseId, cmid и userId
+    // Expose courseId, cmid, and userId
     $courseid = !empty($PAGE->course) ? (int)$PAGE->course->id : null;
     $cmid     = !empty($PAGE->cm) ? (int)$PAGE->cm->id : null;
     $userid   = !empty($USER) && !empty($USER->id) ? (int)$USER->id : null;

@@ -25,7 +25,6 @@ build/
 
 # Models
 *.onnx
-*.pkl
 *.joblib
 models/*.onnx
 

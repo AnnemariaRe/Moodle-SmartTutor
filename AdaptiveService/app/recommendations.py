@@ -82,9 +82,8 @@ async def get_recommendations(
         if not candidates:
             return []
 
-    # 6. Sort by urgency descending: concepts where student is struggling come first.
+    # 6. Sort by urgency: struggling concepts first
     #    urgency = (1 - mastery) * (1 + fail_rate)
-    #    fail_rate rises when student attempts often but keeps failing.
     def _urgency(mastery: float, concept_id: int) -> float:
         attempts, correct = stats_map.get(concept_id, (0, 0))
         fail_rate = 1.0 - (correct / attempts) if attempts > 0 else 0.0
