@@ -2,22 +2,28 @@
 .env
 !.env.example
 
+# OS / IDE
 .DS_Store
+**/.idea/
+**/__pycache__/
+**/.claude/
+
+# ML models (binary, tracked separately)
+**/models/*.pkl
+**/models/*.npz
+**/models/*.pth
+**/models/*.json
+**/models/*.png
+
+# Moodle data
+**/moodledata/
+
+# Project-specific
 MoodleMetrics/target/
-MoodleMetrics/.idea
-AdaptiveService/.idea/
-AdaptiveService/.claude/
 AdaptiveService/.venv-notebooks/
-TaskGenerator/.idea/
-TaskGenerator/tests/__pycache__/
-AdaptiveService/app/__pycache__/
-AdaptiveService/tests/__pycache__/
-TaskGenerator/app/__pycache__/
+AdaptiveService/datasets/
 AdaptiveService/notebooks/dkt_training.ipynb
+AdaptiveService/notebooks/lightfm_eval.ipynb
 CoursePortrait/models/
 AdaptiveService/models/
-AdaptiveService/datasets/
-AdaptiveService/notebooks/lightfm_eval.ipynb
-AdaptiveService/notebooks/dkt_training.ipynb
-AdaptiveService/.venv-notebooks/
 moodle-docker-actual/
