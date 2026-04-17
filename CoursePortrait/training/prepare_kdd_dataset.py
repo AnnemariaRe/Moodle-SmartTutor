@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
-import sys
 
 
 def prepare_kdd_dataset(input_path: str, output_file: str, max_enrollments: int = None):

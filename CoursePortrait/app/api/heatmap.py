@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from app.models import (
     CourseHeatmapResponse,
