@@ -12,7 +12,7 @@
             } catch (e) {}
         }
 
-        // Сессия просмотра курса
+        // Course viewing session
         var courseSessionStart = Date.now();
         window.addEventListener('beforeunload', function() {
             if (!courseSessionStart) return;

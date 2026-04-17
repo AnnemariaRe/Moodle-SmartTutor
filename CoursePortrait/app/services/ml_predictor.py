@@ -21,9 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class MLPredictor:
-    """
-    Класс для ML предсказаний dropout модулей.
-    """
+    """ML-based module dropout predictor."""
     
     def __init__(self, models_dir: str = "models"):
         self.models_dir = Path(models_dir)
@@ -63,18 +61,7 @@ class MLPredictor:
             logger.error(f"Error loading pickle {name} model: {e}")
     
     def predict_dropout(self, features: List[float]) -> float:
-        """
-        Предсказание риска отвала студента.
-
-        Args:
-            features: [durationMs/1000, watchPercent, step]
-                - durationMs/1000: длительность сессии в секундах
-                - watchPercent: процент просмотра (0-1)
-                - step: порядковый номер модуля
-
-        Returns:
-            Вероятность отвала (0-1), где 1 = высокий риск отвала
-        """
+        """Predict student dropout probability (0-1) for a module."""
         if self.dropout_sess is not None:
             try:
                 input_name = self.dropout_sess.get_inputs()[0].name
@@ -106,18 +93,7 @@ class MLPredictor:
         watch_percent: float,
         dropout_after_module: float
     ) -> float:
-        """
-        Difficulty = 0.4 * (avg_duration / median) + 0.3 * (1 - watchPercent) + 0.3 * dropout_after_module
-        
-        Args:
-            avg_duration_ms: Средняя длительность сессии в модуле
-            median_duration_ms: Медианная длительность по курсу
-            watch_percent: Процент просмотра (0-1)
-            dropout_after_module: Процент отвала после модуля (0-1)
-        
-        Returns:
-            Индекс сложности (0-1)
-        """
+        """Compute a weighted difficulty score (0-1) from duration, watch rate, and dropout."""
         if median_duration_ms == 0:
             duration_ratio = 1.0
         else:

@@ -1,10 +1,6 @@
 """
-tests/test_analytics.py
------------------------
-Unit-тесты для модуля аналитики CoursePortrait:
-  - difficulty_calculators.py  (все 5 калькуляторов + фабрика)
-  - calculator.py              (MetricsCalculator)
-  - ml_predictor.py            (MLPredictor fallback)
+Tests for CoursePortrait analytics: difficulty calculators,
+MetricsCalculator, and MLPredictor fallback.
 """
 
 import sys
@@ -131,7 +127,7 @@ class TestQuizCalculator:
         assert len(result.suggestions) == 0
 
     def test_attempts_clamped_at_3(self):
-        # (4 - 1) / 2 = 1.5 → clamp → 1.0, не должно ломаться
+        # (4 - 1) / 2 = 1.5 → clamp → 1.0, must not break
         result = self.calc.calculate(_quiz(attempts=10.0))
         assert result.difficulty_score <= 1.0
 
@@ -328,10 +324,10 @@ class TestDifficultyCalculatorFactory:
 # ---------------------------------------------------------------------------
 
 class TestMetricsCalculator:
-    """Тесты агрегирующего калькулятора метрик."""
+    """Tests for the aggregating metrics calculator."""
 
     def _make_predictor(self):
-        """Минимальный предиктор без модели (fallback)."""
+        """Minimal predictor without model (fallback)."""
         return MLPredictor(models_dir="/nonexistent")
 
     def _make_modules(self):
@@ -402,7 +398,7 @@ class TestMetricsCalculator:
     def test_identify_bottlenecks_excludes_low_traffic(self):
         modules = [
             {"moduleId": 1, "difficultyScore": 0.9, "studentCount": 100},
-            {"moduleId": 2, "difficultyScore": 0.9, "studentCount": 5},  # <10% трафика
+            {"moduleId": 2, "difficultyScore": 0.9, "studentCount": 5},  # <10% traffic
         ]
         bottlenecks = MetricsCalculator.identify_bottlenecks(modules, threshold=0.35)
         assert 1 in bottlenecks
@@ -423,14 +419,14 @@ class TestMetricsCalculator:
         assert [4, 5, 6] in chains
 
     def test_analyze_dropoff_chains_ignores_long_sequences(self):
-        # Длинные последовательности (>=5 модулей) — не dropout, игнорируются
+        # Long sequences (>=5 modules) are not dropout, ignored
         sequences = [
-            [1, 2, 3, 4, 5, 6],  # не dropout
+            [1, 2, 3, 4, 5, 6],  # not dropout
             [1, 2, 3],            # dropout
         ]
         chains = MetricsCalculator.analyze_dropoff_chains(sequences)
         assert [1, 2, 3] in chains
-        # [4, 5, 6] — хвост длинной последовательности не должен попасть в топ
+        # [4, 5, 6] — tail of long sequence should not appear in top chains
         assert [4, 5, 6] not in chains
 
     def test_analyze_dropoff_chains_empty_returns_empty(self):
@@ -475,5 +471,5 @@ class TestMetricsCalculator:
 
 
 # ---------------------------------------------------------------------------
-# MLPredictor (fallback без модели)
+# MLPredictor (fallback without model)
 # ---------------------------------------------------------------------------

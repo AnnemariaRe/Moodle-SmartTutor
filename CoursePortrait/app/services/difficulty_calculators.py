@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 from dataclasses import dataclass
 import logging
 
@@ -12,8 +12,8 @@ class DifficultyMetric:
     value: float
     normalized_value: float
     weight: float
-    contribution: float          # Вклад в итоговый скор (normalized * weight)
-    interpretation: str          # Пояснение для преподавателя
+    contribution: float          # Final score contribution (normalized * weight)
+    interpretation: str          # Human-readable explanation for the instructor
 
 
 @dataclass
@@ -21,9 +21,9 @@ class DifficultyResult:
     module_type: str
     difficulty_score: float
     difficulty_level: str        # easy/medium/hard
-    metrics: List[DifficultyMetric]  # Детализация по метрикам
-    explanation: str             # Общее пояснение
-    suggestions: List[str]       # Рекомендации по улучшению
+    metrics: List[DifficultyMetric]  # Per-metric breakdown
+    explanation: str             # Overall explanation
+    suggestions: List[str]       # Improvement recommendations
 
 
 class BaseDifficultyCalculator(ABC):
