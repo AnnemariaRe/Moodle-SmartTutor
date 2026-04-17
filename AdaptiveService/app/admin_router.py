@@ -67,9 +67,7 @@ async def get_graph(course_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.post("/graph/import", status_code=status.HTTP_204_NO_CONTENT)
 async def import_graph(data: GraphImport, db: AsyncSession = Depends(get_db)):
-    """Replace the knowledge graph for a course from a JSON payload.
-    Concepts are referenced by name (natural key within a course).
-    """
+    """Replace the knowledge graph for a course from a JSON payload."""
     course_id = data.course_id
     existing_concept_ids = (
         await db.execute(select(Concept.id).where(Concept.course_id == course_id))
@@ -247,3 +245,140 @@ async def train_lightfm(course_id: int, epochs: int = 30, db: AsyncSession = Dep
     if dataset is None:
         return {"status": "skipped", "reason": "нет данных: нет контент-айтемов или взаимодействий"}
     return train_model(dataset, course_id, epochs=epochs)
+
+
+@router.get("/evaluate-lightfm")
+async def evaluate_lightfm(course_id: int, k: int = 5, test_size: float = 0.2):
+    """Evaluate the saved LightFM model using a train/test split."""
+    import joblib
+    from app.lightfm_model import model_path
+
+    path = model_path(course_id)
+    if not path.exists():
+        raise HTTPException(status_code=404, detail=f"Модель для курса {course_id} не найдена. Сначала запустите /train-lightfm")
+
+    try:
+        saved = joblib.load(path)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Ошибка загрузки модели: {exc}")
+
+    try:
+        return await _run_lightfm_eval(saved, course_id, k, test_size)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        import traceback
+        raise HTTPException(status_code=500, detail=f"{type(exc).__name__}: {exc}\n{traceback.format_exc()}")
+
+
+async def _run_lightfm_eval(saved: dict, course_id: int, k: int, test_size: float) -> dict:
+    import numpy as np
+    from lightfm import LightFM
+    from lightfm.evaluation import auc_score, precision_at_k, recall_at_k
+    from scipy.sparse import lil_matrix
+
+    model = saved["model"]
+    dataset = saved["dataset"]
+    interactions = dataset.interactions
+    n_users = interactions.shape[0]
+
+    if n_users < 5:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Слишком мало студентов ({n_users}) для оценки. Нужно минимум 5.",
+        )
+
+    train_mat = lil_matrix(interactions.shape, dtype=interactions.dtype)
+    test_mat = lil_matrix(interactions.shape, dtype=interactions.dtype)
+    coo = interactions.tocoo()
+
+    user_entries: dict[int, list[tuple[int, float, int]]] = {}
+    ts_map: dict[tuple[int, int], int] = getattr(dataset, "interaction_timestamps", {})
+    for i in range(coo.nnz):
+        u, col, w = int(coo.row[i]), int(coo.col[i]), float(coo.data[i])
+        ts = ts_map.get((u, col), 0)
+        user_entries.setdefault(u, []).append((col, w, ts))
+
+    has_temporal = any(ts > 0 for (_, _, ts) in (e for entries in user_entries.values() for e in entries))
+    split_method = "temporal" if has_temporal else "random"
+
+    rng = np.random.RandomState(42)
+    for uid, entries in user_entries.items():
+        if has_temporal:
+            # Sort by timestamp ascending; entries with ts=0 go first (oldest)
+            entries.sort(key=lambda e: e[2])
+        else:
+            rng.shuffle(entries)
+
+        split = max(1, int(len(entries) * (1 - test_size)))
+        for col, w, _ in entries[:split]:
+            train_mat[uid, col] = w
+        for col, w, _ in entries[split:]:
+            test_mat[uid, col] = w
+
+    train_interactions = train_mat.tocsr()
+    test_interactions = test_mat.tocsr()
+
+    uf = dataset.user_features if dataset.user_features is not None else None
+
+    # Retrain on train split for unbiased evaluation
+    eval_model = LightFM(
+        loss=model.loss,
+        no_components=model.no_components,
+        learning_rate=model.learning_rate,
+        item_alpha=model.item_alpha,
+        user_alpha=model.user_alpha,
+        random_state=42,
+    )
+    eval_model.fit(
+        interactions=train_interactions,
+        user_features=uf,
+        item_features=dataset.item_features,
+        epochs=30,
+        num_threads=2,
+        verbose=False,
+    )
+
+    p_at_k = float(precision_at_k(
+        eval_model, test_interactions,
+        train_interactions=train_interactions,
+        user_features=uf,
+        item_features=dataset.item_features,
+        k=k,
+    ).mean())
+
+    r_at_k = float(recall_at_k(
+        eval_model, test_interactions,
+        train_interactions=train_interactions,
+        user_features=uf,
+        item_features=dataset.item_features,
+        k=k,
+    ).mean())
+
+    auc = float(auc_score(
+        eval_model, test_interactions,
+        train_interactions=train_interactions,
+        user_features=uf,
+        item_features=dataset.item_features,
+    ).mean())
+
+    n_implicit = sum(1 for ts in ts_map.values() if ts > 0)
+
+    return {
+        "course_id": course_id,
+        "k": k,
+        "users": n_users,
+        "train_interactions": int(train_interactions.nnz),
+        "test_interactions": int(test_interactions.nnz),
+        "implicit_interactions": n_implicit,
+        "split_method": split_method,
+        f"precision_at_{k}": round(p_at_k, 4),
+        f"recall_at_{k}": round(r_at_k, 4),
+        "auc": round(auc, 4),
+        "interpretation": {
+            f"precision_at_{k}": "хорошо ≥ 0.15, плохо < 0.05",
+            f"recall_at_{k}": "хорошо ≥ 0.20, плохо < 0.10",
+            "auc": "хорошо ≥ 0.75, плохо < 0.60",
+            "split_method": "temporal = сортировка по времени (честнее); random = случайный (нет timestamps)",
+        },
+    }

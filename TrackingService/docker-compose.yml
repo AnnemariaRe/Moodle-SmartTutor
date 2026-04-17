@@ -26,6 +26,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - internal
+      - tracking_shared_net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tracking} -d ${POSTGRES_DB:-tracking}"]
       interval: 5s
@@ -42,6 +43,7 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - internal
+      - rabbitmq_shared_net
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
@@ -57,4 +59,8 @@ networks:
   internal:
     driver: bridge
   moodle_shared_net:
+    external: true
+  tracking_shared_net:
+    external: true
+  rabbitmq_shared_net:
     external: true

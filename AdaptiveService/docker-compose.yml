@@ -8,6 +8,7 @@ services:
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672/
       MOODLE_URL: ${MOODLE_URL:-http://moodle.local:8081}
       MOODLE_TOKEN: ${MOODLE_TOKEN:-}
+      TRACKING_DB_URL: ${TRACKING_DB_URL:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -16,6 +17,7 @@ services:
       - rabbitmq_shared_net
       - moodle_shared_net
       - adaptive_shared_net
+      - tracking_shared_net
     restart: unless-stopped
     extra_hosts:
       - "moodle.local:host-gateway"
@@ -50,4 +52,6 @@ networks:
   moodle_shared_net:
     external: true
   adaptive_shared_net:
+    external: true
+  tracking_shared_net:
     external: true
