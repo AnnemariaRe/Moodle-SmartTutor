@@ -1,0 +1,54 @@
+{{!
+    @template block_personal_tasks/teacher_content
+    Template for Personal Tasks block — teacher/admin view.
+}}
+<div class="block-personal-tasks-teacher">
+
+    {{! Generation panel }}
+    <div class="card mb-3">
+        <div class="card-body p-2">
+            <p class="font-weight-bold small mb-1">{{#str}} generate_bank_label, block_personal_tasks {{/str}}</p>
+            <textarea id="pt-teacher-instructions"
+                      class="form-control form-control-sm mb-2"
+                      rows="2"
+                      placeholder="{{#str}} teacher_instructions_placeholder, block_personal_tasks {{/str}}"></textarea>
+            <div class="input-group input-group-sm mb-2">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">{{#str}} tasks_per_concept_label, block_personal_tasks {{/str}}</span>
+                </div>
+                <input id="pt-tasks-per-concept" type="number" class="form-control" value="9" min="1" max="30">
+            </div>
+            <button id="pt-generate-bank" class="btn btn-primary btn-sm w-100">
+                {{#str}} generate_bank_button, block_personal_tasks {{/str}}
+            </button>
+        </div>
+    </div>
+
+    {{! Status message }}
+    <div id="pt-teacher-status" class="text-muted small mb-2" aria-live="polite"></div>
+
+    {{! Filter bar }}
+    <div class="d-flex mb-2" style="gap:4px;">
+        <select id="pt-filter-status" class="form-control form-control-sm">
+            <option value="">{{#str}} filter_all, block_personal_tasks {{/str}}</option>
+            <option value="pending_review">{{#str}} status_pending, block_personal_tasks {{/str}}</option>
+            <option value="approved">{{#str}} status_approved, block_personal_tasks {{/str}}</option>
+            <option value="rejected">{{#str}} status_rejected, block_personal_tasks {{/str}}</option>
+        </select>
+        <button id="pt-load-bank" class="btn btn-secondary btn-sm">
+            {{#str}} load_bank_button, block_personal_tasks {{/str}}
+        </button>
+    </div>
+
+    {{! Bulk actions }}
+    <div id="pt-bulk-actions" class="mb-2" style="display:none;">
+        <button id="pt-approve-all" class="btn btn-success btn-sm mr-1">
+            {{#str}} approve_all_button, block_personal_tasks {{/str}}
+        </button>
+        <button id="pt-reject-all" class="btn btn-danger btn-sm">
+            {{#str}} reject_all_button, block_personal_tasks {{/str}}</button>
+    </div>
+
+    {{! Task bank list }}
+    <div id="pt-bank-container"></div>
+</div>

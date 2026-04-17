@@ -20,4 +20,12 @@ $capabilities = [
             'manager'        => CAP_ALLOW,
         ],
     ],
+    'block/personal_tasks:managetasks' => [
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes'   => [
+            'editingteacher' => CAP_ALLOW,
+            'manager'        => CAP_ALLOW,
+        ],
+    ],
 ];
