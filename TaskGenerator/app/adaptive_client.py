@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import Any, Dict, List
 
 import httpx
 
@@ -15,6 +15,14 @@ async def fetch_mastery(student_id: int, course_id: int) -> List[ConceptMastery]
         resp.raise_for_status()
         data = resp.json()
         return [ConceptMastery.model_validate(c) for c in data["state"]]
+
+
+async def fetch_all_concepts(course_id: int) -> List[Dict[str, Any]]:
+    """Return all concepts for a course from AdaptiveService."""
+    async with httpx.AsyncClient(base_url=settings.adaptive_url, timeout=10.0) as client:
+        resp = await client.get("/v1/concepts", params={"course_id": course_id})
+        resp.raise_for_status()
+        return resp.json()
 
 
 async def push_mastery_update(
