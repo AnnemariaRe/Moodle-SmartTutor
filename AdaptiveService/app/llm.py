@@ -11,6 +11,8 @@ from typing import TYPE_CHECKING
 
 from openai import AsyncOpenAI, RateLimitError, APIError
 
+from app.prompts import CONCEPT_EXTRACTION_PROMPT
+
 if TYPE_CHECKING:
     from app.moodle_client import ActivityData
 
@@ -43,11 +45,7 @@ async def extract_concepts_batch(
     activities: "list[ActivityData]",
     course_name: str = "",
 ) -> dict[int, list[ConceptSuggestion]]:
-    """Process all activities in sequential batches.
-
-    Returns {cmid: [ConceptSuggestion]}.
-    Sequential (not parallel) to stay within rate limits.
-    """
+    """Extract concepts from activities in sequential batches."""
     if not activities:
         return {}
 
@@ -73,11 +71,11 @@ async def extract_concepts_batch(
 
 # Internals
 _TYPE_LABELS = {
-    "page": "страница",
-    "quiz": "квиз/тест",
-    "assign": "задание",
-    "book": "книга",
-    "lesson": "интерактивный урок",
+    "page": "page",
+    "quiz": "quiz/test",
+    "assign": "assignment",
+    "book": "book",
+    "lesson": "interactive lesson",
 }
 
 
@@ -85,29 +83,22 @@ async def _extract_one_batch(
     activities: "list[ActivityData]",
     course_name: str,
 ) -> dict[int, list[ConceptSuggestion]]:
-    course_hint = f' курса «{course_name}»' if course_name else ""
+    course_hint = f' for the course "{course_name}"' if course_name else ""
     cmid_list = ", ".join(str(a.cmid) for a in activities)
 
     items_text = "\n\n".join(
-        f"=== Активность {i + 1} "
-        f"(cmid={a.cmid}, тип: {_TYPE_LABELS.get(a.type, a.type)}, "
-        f"название: «{a.name}») ===\n{a.text[:TEXT_PER_ACTIVITY]}"
+        f"=== Activity {i + 1} "
+        f"(cmid={a.cmid}, type: {_TYPE_LABELS.get(a.type, a.type)}, "
+        f"title: \"{a.name}\") ===\n{a.text[:TEXT_PER_ACTIVITY]}"
         for i, a in enumerate(activities)
     )
 
-    prompt = f"""Ты — ассистент по анализу учебного контента{course_hint}.
-
-Ниже {len(activities)} учебных активностей. Для каждой выдели 3–7 ключевых учебных концептов (тем), которые в ней объясняются или проверяются.
-
-Требования к концептам:
-- Краткие (2–5 слов), как в учебном плане: «циклы for», «условия if/else», «списки Python».
-- Упорядочены от наиболее важного к наименее важному для данной активности.
-- Первый концепт — главная тема, остальные — вспомогательные.
-
-{items_text}
-
-Ответ строго JSON без пояснений и markdown-блоков. Верни результаты ровно для cmid: {cmid_list}.
-{{"results": [{{"cmid": <число>, "concepts": ["главная тема", "вторая тема", "третья тема"]}}]}}"""
+    prompt = CONCEPT_EXTRACTION_PROMPT.format(
+        course_hint=course_hint,
+        num_activities=len(activities),
+        items_text=items_text,
+        cmid_list=cmid_list,
+    )
 
     raw = await _call_with_retry(prompt)
     if not raw:

@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import embedder, moodle_client
 from app.llm import get_llm
 from app.models import CourseChunk, CourseOverview
+from app.prompts import OVERVIEW_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -27,19 +28,6 @@ _splitter = RecursiveCharacterTextSplitter(
 
 _MULTI_SPACE = re.compile(r"[ \t]+")
 _MULTI_NL    = re.compile(r"\n{3,}")
-
-_OVERVIEW_PROMPT = """\
-Ты ассистент преподавателя. Ниже — полная структура учебного курса (разделы и модули).
-Напиши краткую аннотацию курса (150–200 слов) на русском языке:
-- Тематика и название курса
-- Основные разделы и ключевые темы
-- Что студент узнает / научится делать
-
-Структура курса:
-{structure}
-
-Аннотация:\
-"""
 
 
 def _clean_html(raw: str) -> str:
@@ -167,7 +155,7 @@ async def _generate_course_overview(course_id: int, sections: list, db: AsyncSes
     if not structure.strip():
         return
     try:
-        response = await get_llm().ainvoke(_OVERVIEW_PROMPT.format(structure=structure))
+        response = await get_llm().ainvoke(OVERVIEW_PROMPT.format(structure=structure))
         overview_text: str = response.content.strip()
     except Exception as exc:
         logger.warning("Course overview generation failed (course_id=%d): %s", course_id, exc)

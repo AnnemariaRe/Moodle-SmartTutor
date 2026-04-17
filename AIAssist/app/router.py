@@ -14,6 +14,7 @@ from app import embedder
 from app.database import get_db
 from app.llm import get_llm
 from app.models import AssistantLog, CourseChunk, CourseOverview
+from app.prompts import SYSTEM_PROMPT
 from app.query_rewrite import expand_query
 from app.schemas import AskRequest, AskResponse, SourceItem
 
@@ -23,22 +24,6 @@ router = APIRouter()
 TOP_K = 5
 RETRIEVE_K = 3
 MAX_CONTEXT_CHARS = 6000
-
-SYSTEM_PROMPT = """\
-Ты учебный AI-ассистент курса. Ниже тебе будут предоставлены фрагменты учебных материалов курса.
-
-Твои задачи:
-- Отвечать на вопросы студентов по содержанию курса, опираясь на предоставленные материалы.
-- Разъяснять условия заданий, если студент не понимает, что от него требуется.
-- Придумывать и показывать примеры, иллюстрации, аналогии — если это помогает понять тему.
-- Помогать разобраться в теме шаг за шагом, если студент просит.
-
-Правила:
-- Используй предоставленные фрагменты как основной источник знаний о курсе.
-- Если в материалах недостаточно информации — скажи об этом и помоги, насколько можешь.
-- Никогда не решай задание за студента напрямую — направляй, объясняй, показывай похожий пример.
-- Отвечай на русском языке, понятно и по существу.\
-"""
 
 
 async def _multi_query_retrieve(query_texts: List[str], course_id: int, db: AsyncSession) -> List[CourseChunk]:
@@ -70,18 +55,18 @@ async def _get_course_overview(course_id: int, db: AsyncSession) -> str:
 
 def _build_user_message(question: str, chunks: List[CourseChunk], overview: str) -> str:
     context_parts = [
-        f"[{i}] {chunk.title} (тип: {chunk.type}, раздел {chunk.section})\n{chunk.text}"
+        f"[{i}] {chunk.title} (type: {chunk.type}, section {chunk.section})\n{chunk.text}"
         for i, chunk in enumerate(chunks, 1)
     ]
     context = "\n\n---\n\n".join(context_parts)
     if len(context) > MAX_CONTEXT_CHARS:
-        context = context[:MAX_CONTEXT_CHARS] + "\n...(обрезано)"
+        context = context[:MAX_CONTEXT_CHARS] + "\n...(truncated)"
 
-    overview_block = f"=== О курсе ===\n{overview}\n\n" if overview else ""
+    overview_block = f"=== About the course ===\n{overview}\n\n" if overview else ""
     return (
         f"{overview_block}"
-        f"=== Материалы курса ===\n{context}\n\n"
-        f"=== Вопрос студента ===\n{question}"
+        f"=== Course materials ===\n{context}\n\n"
+        f"=== Student question ===\n{question}"
     )
 
 
@@ -114,7 +99,7 @@ async def ask(request: AskRequest, db: AsyncSession = Depends(get_db)):
     overview = await _get_course_overview(request.course_id, db)
 
     history_messages = []
-    for msg in request.history[-10:]:  # последние 5 обменов (10 сообщений)
+    for msg in request.history[-10:]:  # last 5 exchanges (10 messages)
         if msg.role == "user":
             history_messages.append(HumanMessage(content=msg.content))
         else:
