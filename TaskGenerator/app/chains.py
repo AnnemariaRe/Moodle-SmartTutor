@@ -13,7 +13,12 @@ from app.settings import settings
 
 logger = logging.getLogger(__name__)
 
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, api_key=settings.openai_api_key)
+llm = ChatOpenAI(
+    model="gpt-4o-mini",
+    temperature=0.3,
+    api_key=settings.openai_api_key,
+    base_url=settings.openai_base_url or None,
+)
 
 # Task Generation Chain (student-specific, uses BKT difficulty)
 task_prompt = ChatPromptTemplate.from_template(TASK_GENERATION_PROMPT)
