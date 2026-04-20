@@ -199,7 +199,7 @@ class observer {
     }
 
     private static function send_to_tracking($data) {
-        $url = 'http://tracking-service:8001/v1/events';
+        $url = 'http://trackingservice-tracking-service-1:8001/v1/events';
         $options = [
             'http' => [
                 'method' => 'POST',

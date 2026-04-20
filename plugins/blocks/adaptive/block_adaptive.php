@@ -53,7 +53,7 @@ class block_adaptive extends block_base {
             // modinfo unavailable — fall back to concept names
         }
 
-        $url = 'http://adaptive-service:8002/v1/recommendations'
+        $url = 'http://adaptiveservice-adaptive-service-1:8002/v1/recommendations'
              . '?student_id=' . $student_id
              . '&course_id='  . $course_id
              . ($cmid !== null ? '&cmid=' . $cmid : '');
