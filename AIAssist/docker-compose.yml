@@ -9,6 +9,7 @@ services:
       MOODLE_URL: ${MOODLE_URL:-http://localhost:8081}
       MOODLE_TOKEN: ${MOODLE_TOKEN:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
       CORS_ORIGINS: ${CORS_ORIGINS:-*}
     depends_on:
       postgres-ai:

@@ -4,7 +4,7 @@ services:
     ports:
       - "${TRACKING_PORT:-8001}:8001"
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tracking}:${POSTGRES_PASSWORD:-tracking}@postgres:5432/${POSTGRES_DB:-tracking}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tracking}:${POSTGRES_PASSWORD:-tracking}@trackingservice-postgres-1:5432/${POSTGRES_DB:-tracking}
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672/
     depends_on:
       postgres:
@@ -57,7 +57,8 @@ volumes:
 
 networks:
   internal:
-    driver: bridge
+    name: trackingservice_internal
+    external: true
   moodle_shared_net:
     external: true
   tracking_shared_net:

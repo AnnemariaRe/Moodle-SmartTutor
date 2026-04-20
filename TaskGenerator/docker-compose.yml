@@ -4,9 +4,10 @@ services:
     ports:
       - "127.0.0.1:${TASKS_PORT:-8004}:8004"
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tasks}:${POSTGRES_PASSWORD:-tasks}@tasks-postgres:5432/${POSTGRES_DB:-tasks}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tasks}:${POSTGRES_PASSWORD:-tasks}@taskgenerator-tasks-postgres-1:5432/${POSTGRES_DB:-tasks}
       ADAPTIVE_URL: ${ADAPTIVE_URL:-http://adaptive-service:8002}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
     depends_on:
       tasks-postgres:

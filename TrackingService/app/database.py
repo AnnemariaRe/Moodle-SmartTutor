@@ -6,7 +6,11 @@ from app.models import Base
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://tracking:tracking@postgres:5432/tracking")
 
-engine = create_async_engine(DATABASE_URL, echo=False)
+engine = create_async_engine(
+    DATABASE_URL,
+    echo=False,
+    connect_args={"ssl": False}
+)
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 

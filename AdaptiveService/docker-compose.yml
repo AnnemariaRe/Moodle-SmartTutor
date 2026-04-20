@@ -4,11 +4,13 @@ services:
     ports:
       - "127.0.0.1:${ADAPTIVE_PORT:-8002}:8002"
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-adaptive}:${POSTGRES_PASSWORD:-adaptive}@postgres:5432/${POSTGRES_DB:-adaptive}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-adaptive}:${POSTGRES_PASSWORD:-adaptive}@adaptiveservice-postgres-1:5432/${POSTGRES_DB:-adaptive}
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672/
       MOODLE_URL: ${MOODLE_URL:-http://moodle.local:8081}
       MOODLE_TOKEN: ${MOODLE_TOKEN:-}
       TRACKING_DB_URL: ${TRACKING_DB_URL:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
     depends_on:
       postgres:
         condition: service_healthy

@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     embedding_model: str = "text-embedding-3-small"
 
     class Config:
+        extra = "ignore"
         env_file = ".env"
 
 

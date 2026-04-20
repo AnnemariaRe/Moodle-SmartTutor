@@ -43,7 +43,7 @@ class MoodleClient:
         self.token = token
 
     async def _call(self, function: str, **params) -> dict | list:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
             resp = await client.get(
                 self.base_url,
                 params={

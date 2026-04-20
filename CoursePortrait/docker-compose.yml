@@ -9,7 +9,7 @@ services:
       - METRIKA_OAUTH_TOKEN=${METRIKA_OAUTH_TOKEN:-}
       - MOODLE_URL=${MOODLE_URL:-http://localhost:8000}
       - MOODLE_TOKEN=${MOODLE_TOKEN:-}
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-pass}@postgres:${POSTGRES_PORT:-5434}/${POSTGRES_DB:-portrait}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-pass}@courseportrait-postgres-1:5434/${POSTGRES_DB:-portrait}
       - REDIS_URL=redis://redis:6379/0
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-secret-key-change-in-production}
     volumes:

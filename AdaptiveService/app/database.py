@@ -10,7 +10,7 @@ DATABASE_URL = os.getenv(
     "postgresql+asyncpg://adaptive:adaptive@postgres:5432/adaptive",
 )
 
-engine = create_async_engine(DATABASE_URL, echo=False)
+engine = create_async_engine(DATABASE_URL, echo=False, connect_args={"ssl": False})
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
