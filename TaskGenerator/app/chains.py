@@ -6,8 +6,14 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.aiassist_client import fetch_course_context
 from app.predictor import select_optimal_difficulty
-from app.prompts import BANK_TASK_PROMPT, CHECK_ANSWER_PROMPT, TASK_GENERATION_PROMPT
+from app.prompts import (
+    BANK_TASK_PROMPT,
+    BANK_TASK_PROMPT_NO_CONTEXT,
+    CHECK_ANSWER_PROMPT,
+    TASK_GENERATION_PROMPT,
+)
 from app.schemas import TaskSpec
 from app.settings import settings
 
@@ -24,13 +30,14 @@ llm = ChatOpenAI(
 task_prompt = ChatPromptTemplate.from_template(TASK_GENERATION_PROMPT)
 task_chain = task_prompt | llm | JsonOutputParser()
 
-# Bank Task Generation Chain (explicit difficulty, optional teacher instructions)
-bank_task_prompt = ChatPromptTemplate.from_template(BANK_TASK_PROMPT)
-bank_task_chain = bank_task_prompt | llm | JsonOutputParser()
-
 # Answer Check Chain
 check_prompt = ChatPromptTemplate.from_template(CHECK_ANSWER_PROMPT)
 check_chain = check_prompt | llm | JsonOutputParser()
+
+
+def _build_bank_chain(has_context: bool):
+    tpl = BANK_TASK_PROMPT if has_context else BANK_TASK_PROMPT_NO_CONTEXT
+    return ChatPromptTemplate.from_template(tpl) | llm | JsonOutputParser()
 
 
 async def generate_tasks(
@@ -61,20 +68,39 @@ async def generate_tasks_for_bank(
     concept_name: str,
     difficulty: str,
     variants: int,
+    course_id: int,
     teacher_instructions: Optional[str] = None,
+    course_context: Optional[str] = None,
 ) -> List[TaskSpec]:
-    """Generate tasks for the bank with explicit difficulty and optional teacher instructions."""
-    if teacher_instructions:
-        instructions_block = f"Additional teacher instructions: {teacher_instructions}\n"
-    else:
-        instructions_block = ""
+    """Generate bank tasks grounded in course materials (RAG via AIAssist).
+    If `course_context` is provided (e.g. cached by caller), reuse it; otherwise fetch."""
+    if course_context is None:
+        course_context = await fetch_course_context(course_id, concept_name, top_k=5)
+
+    has_context = bool(course_context)
+    if not has_context:
+        logger.warning(
+            "No RAG context for concept '%s' (course=%d) — generating without course materials",
+            concept_name, course_id,
+        )
+
+    instructions_block = (
+        f"Additional teacher instructions: {teacher_instructions}\n"
+        if teacher_instructions else ""
+    )
+
+    params = {
+        "concept_name": concept_name,
+        "difficulty": difficulty,
+        "variants": variants,
+        "teacher_instructions_block": instructions_block,
+    }
+    if has_context:
+        params["course_context"] = course_context
+
     try:
-        tasks_json = await bank_task_chain.ainvoke({
-            "concept_name": concept_name,
-            "difficulty": difficulty,
-            "variants": variants,
-            "teacher_instructions_block": instructions_block,
-        })
+        chain = _build_bank_chain(has_context)
+        tasks_json = await chain.ainvoke(params)
         return [TaskSpec.model_validate(t) for t in tasks_json]
     except Exception:
         logger.exception(

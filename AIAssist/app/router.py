@@ -16,7 +16,7 @@ from app.llm import get_llm
 from app.models import AssistantLog, CourseChunk, CourseOverview
 from app.prompts import SYSTEM_PROMPT
 from app.query_rewrite import expand_query
-from app.schemas import AskRequest, AskResponse, SourceItem
+from app.schemas import AskRequest, AskResponse, SearchChunk, SearchRequest, SearchResponse, SourceItem
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -24,6 +24,25 @@ router = APIRouter()
 TOP_K = 5
 RETRIEVE_K = 3
 MAX_CONTEXT_CHARS = 6000
+
+
+async def _single_query_retrieve_scored(
+    query_text: str, course_id: int, top_k: int, db: AsyncSession
+) -> List[tuple[CourseChunk, float]]:
+    """kNN search that also returns cosine similarity scores for each chunk."""
+    loop = asyncio.get_running_loop()
+    embeddings: np.ndarray = await loop.run_in_executor(None, embedder.embed_batch, [query_text])
+    q_vec = embeddings[0].tolist()
+
+    distance = CourseChunk.embedding.cosine_distance(q_vec)
+    stmt = (
+        select(CourseChunk, distance.label("distance"))
+        .where(CourseChunk.course_id == course_id)
+        .order_by(distance)
+        .limit(top_k)
+    )
+    rows = (await db.execute(stmt)).all()
+    return [(chunk, 1.0 - float(dist)) for chunk, dist in rows]
 
 
 async def _multi_query_retrieve(query_texts: List[str], course_id: int, db: AsyncSession) -> List[CourseChunk]:
@@ -134,3 +153,27 @@ async def ask(request: AskRequest, db: AsyncSession = Depends(get_db)):
     await db.commit()
 
     return AskResponse(answer=answer, sources=sources, course_id=request.course_id)
+
+
+@router.post("/v1/internal/search", response_model=SearchResponse)
+async def internal_search(request: SearchRequest, db: AsyncSession = Depends(get_db)):
+    """Retrieval-only endpoint for other microservices (e.g. TaskGenerator).
+    Returns top-k chunks by cosine similarity, no LLM involved."""
+    scored = await _single_query_retrieve_scored(
+        request.query.strip(), request.course_id, request.top_k, db
+    )
+    chunks = [
+        SearchChunk(
+            text=chunk.text,
+            source_module_id=chunk.cmid,
+            source_module_name=chunk.title,
+            type=chunk.type,
+            score=round(score, 4),
+        )
+        for chunk, score in scored
+    ]
+    logger.info(
+        "internal_search: course=%d query=%r top_k=%d found=%d",
+        request.course_id, request.query[:50], request.top_k, len(chunks),
+    )
+    return SearchResponse(chunks=chunks)

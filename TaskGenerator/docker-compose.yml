@@ -6,6 +6,7 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tasks}:${POSTGRES_PASSWORD:-tasks}@taskgenerator-tasks-postgres-1:5432/${POSTGRES_DB:-tasks}
       ADAPTIVE_URL: ${ADAPTIVE_URL:-http://adaptive-service:8002}
+      AIASSIST_URL: ${AIASSIST_URL:-http://ai-assistant:8003}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}

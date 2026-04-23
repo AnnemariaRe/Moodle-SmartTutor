@@ -8,6 +8,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.adaptive_client import fetch_all_concepts
+from app.aiassist_client import fetch_course_context
 from app.chains import generate_tasks_for_bank
 from app.database import get_db
 from app.models import GeneratedTask
@@ -49,12 +50,19 @@ async def generate_bank(
         concept_id = concept["id"]
         concept_name = concept["name"]
 
+        # Fetch RAG context once per concept and reuse across difficulties
+        course_context = await fetch_course_context(
+            req.course_id, concept_name, top_k=5,
+        )
+
         for difficulty in difficulties:
             specs = await generate_tasks_for_bank(
                 concept_name=concept_name,
                 difficulty=difficulty,
                 variants=variants_per_difficulty,
+                course_id=req.course_id,
                 teacher_instructions=req.teacher_instructions,
+                course_context=course_context,
             )
             for spec in specs:
                 db.add(GeneratedTask(
