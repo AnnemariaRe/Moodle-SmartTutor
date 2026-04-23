@@ -33,6 +33,13 @@ Return a JSON array of objects with strictly the following fields:
 Only a JSON array, no markdown, no comments.
 """
 
+_DIFFICULTY_RULES = """ТРЕБОВАНИЯ К СЛОЖНОСТИ (ОБЯЗАТЕЛЬНО):
+- easy: определение или простой факт (1 шаг мышления)
+- medium: практический пример — зашифруй/расшифруй конкретное слово
+- hard: сравнение, анализ, или сложный пример с рассуждением
+Сложности ДОЛЖНЫ отличаться по содержанию, не только по формулировке."""
+
+
 _HINT_RULES = """HINT RULES (field `hint` — shown after the student's FIRST wrong attempt):
 - MUST NOT reveal the correct answer — neither verbatim nor descriptively.
 - MUST NOT list or exclude answer options ("it's not X and not Y").
@@ -74,10 +81,7 @@ CRITICAL RULES:
 3. If materials mention specific algorithms/ciphers — use EXACTLY those. Do not substitute them with better-known ones.
 4. If materials contain no math formulas or advanced concepts — do not introduce them into tasks.
 
-DIFFICULTY LEVELS:
-- easy: check understanding of basic definitions and facts from materials. One or two reasoning steps.
-- medium: apply a rule from materials to a new example. Practical problem.
-- hard: analysis, non-standard situation, comparing two approaches, finding a mistake.
+""" + _DIFFICULTY_RULES + """
 
 FORMAT:
 - Type "mcq": question + 3-4 answer options + correct_index. Options must be plausible, not obvious.
@@ -116,9 +120,8 @@ Rules:
 - Type: mcq (3-4 answer options) or open (short text answer)
 - Anti-cheating: use different numbers, contexts, examples in each task
 - Each task must include a correct answer, a hint, and an explanation
-- For "easy" difficulty — test basic definitions
-- For "medium" — application through examples
-- For "hard" — analysis, edge cases
+
+""" + _DIFFICULTY_RULES + """
 
 """ + _HINT_RULES + """
 
