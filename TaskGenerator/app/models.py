@@ -36,4 +36,5 @@ class TaskAttempt(Base):
     concept_id = Column(Integer, nullable=False, index=True)
     difficulty = Column(String(20), nullable=False)   # easy | medium | hard
     score = Column(Float, nullable=False)              # 0.0 – 1.0
+    attempt_no = Column(Integer, nullable=False, default=1)  # attempt number within current cycle
     created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))

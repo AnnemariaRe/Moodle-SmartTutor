@@ -13,6 +13,7 @@ class TaskSpec(BaseModel):
     options: Optional[List[str]] = None
     correct_index: Optional[int] = None
     correct_answer: Optional[str] = None
+    hint: Optional[str] = None
     explanation: str
 
 
@@ -53,7 +54,10 @@ class CheckAnswerRequest(BaseModel):
 class CheckAnswerResponse(BaseModel):
     score: float
     correct: bool
-    explanation: str
+    attempt_no: int
+    can_retry: bool
+    hint: Optional[str] = None
+    explanation: Optional[str] = None
 
 
 # ── Teacher / Admin schemas ────────────────────────────────────────────────

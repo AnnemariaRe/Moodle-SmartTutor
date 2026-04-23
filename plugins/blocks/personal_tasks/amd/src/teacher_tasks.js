@@ -125,6 +125,14 @@ define(['jquery'], function($) {
             $body.append('<p class="small mb-1"><strong>Ответ:</strong> ' + $('<span>').text(spec.correct_answer).html() + '</p>');
         }
 
+        // Hint (shown after first wrong attempt)
+        if (spec.hint) {
+            $body.append(
+                '<p class="small mb-1"><strong>Подсказка:</strong> ' +
+                $('<span>').text(spec.hint).html() + '</p>'
+            );
+        }
+
         // Explanation
         $body.append('<p class="small text-muted mb-2"><em>' + $('<span>').text(spec.explanation).html() + '</em></p>');
 
@@ -180,6 +188,12 @@ define(['jquery'], function($) {
         }
 
         $form.append(
+            '<label class="small">Подсказка (показывается после первой ошибки)</label>' +
+            '<textarea class="form-control form-control-sm mb-1 ef-hint" rows="2">' +
+            $('<span>').text(spec.hint || '').html() +
+            '</textarea>'
+        );
+        $form.append(
             '<label class="small">Объяснение</label>' +
             '<textarea class="form-control form-control-sm mb-2 ef-explanation" rows="2">' +
             $('<span>').text(spec.explanation).html() +
@@ -227,6 +241,7 @@ define(['jquery'], function($) {
         var $form = $card.find('.pt-edit-form');
         var spec  = {};
         spec.question    = $form.find('.ef-question').val();
+        spec.hint        = $form.find('.ef-hint').val() || null;
         spec.explanation = $form.find('.ef-explanation').val();
 
         var $options = $form.find('.ef-option');

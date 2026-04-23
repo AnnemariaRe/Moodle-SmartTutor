@@ -33,6 +33,31 @@ Return a JSON array of objects with strictly the following fields:
 Only a JSON array, no markdown, no comments.
 """
 
+_HINT_RULES = """HINT RULES (field `hint` — shown after the student's FIRST wrong attempt):
+- MUST NOT reveal the correct answer — neither verbatim nor descriptively.
+- MUST NOT list or exclude answer options ("it's not X and not Y").
+- Steer the student toward the right principle / property / area to look at.
+- Short: 1-3 sentences, max 200 characters.
+- Friendly tone: "Подумай о…", "Вспомни про…", "Обрати внимание, что…".
+- Leaves the actual reasoning to the student — hint narrows the search, not gives the answer.
+- IN RUSSIAN.
+
+HINT EXAMPLES:
+
+Example 1 — MCQ:
+  Question: «Какой шифр заменяет каждую букву на букву, стоящую на противоположном месте алфавита?»
+  Correct answer: «Атбаш»
+  GOOD hint: «Этот шифр известен с древних времён и упоминается в библейских текстах. Его название — короткое слово из двух слогов.»
+  BAD hint: «Правильный ответ — Атбаш» (reveals)
+  BAD hint: «Это не Цезарь и не Виженер» (excludes, doesn't help)
+  BAD hint: «Подумай ещё раз» (no signal)
+
+Example 2 — open:
+  Question: «Зашифруй слово КОТ шифром Атбаш»
+  Correct answer: «ЧЛЕ»
+  GOOD hint: «Принцип Атбаш: А↔Я, Б↔Ю. Для каждой буквы слова посчитай её позицию от начала и возьми букву на той же позиции с конца.»"""
+
+
 BANK_TASK_PROMPT = """You create learning tasks STRICTLY based on the provided course materials.
 
 COURSE MATERIALS ON "{concept_name}":
@@ -60,7 +85,9 @@ FORMAT:
 
 ANTI-CHEATING: if multiple tasks — use different numbers, words, contexts. No near-duplicates.
 
-IMPORTANT: ALL task texts (question, options, correct answer, explanation) MUST be ENTIRELY IN RUSSIAN.
+""" + _HINT_RULES + """
+
+IMPORTANT: ALL task texts (question, options, correct answer, hint, explanation) MUST be ENTIRELY IN RUSSIAN.
 
 Return STRICTLY a JSON array of objects with fields:
 - type: "mcq" or "open"
@@ -69,7 +96,8 @@ Return STRICTLY a JSON array of objects with fields:
 - options: list of options (only for mcq, otherwise null; ALL IN RUSSIAN)
 - correct_index: 0-based index of the correct option (only for mcq, otherwise null)
 - correct_answer: correct answer as text (only for open, otherwise null; IN RUSSIAN)
-- explanation: explanation with a reference to the material (IN RUSSIAN)
+- hint: a gentle hint that does NOT reveal the answer (IN RUSSIAN, 1-3 sentences)
+- explanation: full explanation with reference to the material (IN RUSSIAN)
 
 Only a JSON array, no markdown, no comments.
 """
@@ -80,17 +108,19 @@ BANK_TASK_PROMPT_NO_CONTEXT = """
 Generate {variants} unique learning tasks on the concept "{concept_name}".
 
 IMPORTANT: ALL tasks MUST be ENTIRELY IN RUSSIAN!
-The task, question, answer options, correct answer, and explanation — ALL IN RUSSIAN!
+The task, question, answer options, correct answer, hint, and explanation — ALL IN RUSSIAN!
 
 Target difficulty: {difficulty}
 {teacher_instructions_block}
 Rules:
 - Type: mcq (3-4 answer options) or open (short text answer)
 - Anti-cheating: use different numbers, contexts, examples in each task
-- Each task must include a correct answer and explanation
+- Each task must include a correct answer, a hint, and an explanation
 - For "easy" difficulty — test basic definitions
 - For "medium" — application through examples
 - For "hard" — analysis, edge cases
+
+""" + _HINT_RULES + """
 
 Return a JSON array of objects with strictly the following fields:
 - type: "mcq" or "open"
@@ -99,6 +129,7 @@ Return a JSON array of objects with strictly the following fields:
 - options: list of options (only for mcq, otherwise null; ALL IN RUSSIAN)
 - correct_index: 0-based index of the correct option (only for mcq, otherwise null)
 - correct_answer: correct answer as text (only for open, otherwise null; IN RUSSIAN)
+- hint: a gentle hint that does NOT reveal the answer (IN RUSSIAN, 1-3 sentences)
 - explanation: explanation of the correct answer (IN RUSSIAN)
 
 Only a JSON array, no markdown, no comments.

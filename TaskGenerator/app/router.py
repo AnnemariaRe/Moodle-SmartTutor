@@ -1,8 +1,9 @@
 import logging
 import random
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.adaptive_client import fetch_mastery, push_mastery_update
@@ -19,6 +20,9 @@ from app.schemas import (
     TaskResponse,
     TaskSpec,
 )
+
+MAX_ATTEMPTS = 2
+FALLBACK_HINT = "Подумай ещё раз о ключевом принципе этого задания."
 
 router = APIRouter(prefix="/v1")
 logger = logging.getLogger(__name__)
@@ -125,6 +129,30 @@ async def personalized_task(
     return PersonalizedTaskResponse(tasks=all_tasks)
 
 
+async def _count_attempts_in_current_cycle(
+    db: AsyncSession, task_id: int, student_id: int
+) -> int:
+    """Count failed attempts in the current retry cycle.
+    A cycle starts fresh after a successful attempt."""
+    last_correct_at = await db.scalar(
+        select(func.max(TaskAttempt.created_at)).where(
+            TaskAttempt.task_id == task_id,
+            TaskAttempt.student_id == student_id,
+            TaskAttempt.score >= MASTERY_PASSED,
+        )
+    )
+    cutoff = last_correct_at or datetime(1970, 1, 1, tzinfo=timezone.utc)
+    failed = await db.scalar(
+        select(func.count(TaskAttempt.id)).where(
+            TaskAttempt.task_id == task_id,
+            TaskAttempt.student_id == student_id,
+            TaskAttempt.score < MASTERY_PASSED,
+            TaskAttempt.created_at > cutoff,
+        )
+    )
+    return int(failed or 0)
+
+
 @router.post("/check-answer", response_model=CheckAnswerResponse)
 async def check_answer(
     req: CheckAnswerRequest,
@@ -141,11 +169,12 @@ async def check_answer(
 
     score = float(result.get("score", 0.0))
     correct = bool(result.get("correct", score >= MASTERY_PASSED))
-    explanation = str(result.get("explanation", ""))
+    llm_explanation = str(result.get("explanation", ""))
 
-    # Record attempt. task stays "approved" — it can be given to other students.
-    # If score >= MASTERY_PASSED this student won't see this task again.
-    # If score < MASTERY_PASSED the task remains eligible for re-assignment to this student.
+    # Attempt number within the current cycle (1 for first try, 2 for retry, ...)
+    prior_failed = await _count_attempts_in_current_cycle(db, task.id, req.student_id)
+    attempt_no = prior_failed + 1
+
     difficulty = task.difficulty or (task.json_spec.get("difficulty", "medium") if task.json_spec else "medium")
     db.add(TaskAttempt(
         task_id=task.id,
@@ -153,14 +182,36 @@ async def check_answer(
         concept_id=task.concept_id,
         difficulty=difficulty,
         score=score,
+        attempt_no=attempt_no,
     ))
     await db.commit()
 
-    await push_mastery_update(
-        student_id=req.student_id,
-        course_id=task.course_id,
-        concept_id=task.concept_id,
-        score=score,
-    )
+    # Mastery is updated only at the end of a cycle to avoid double-penalty
+    is_final = correct or attempt_no >= MAX_ATTEMPTS
+    if is_final:
+        await push_mastery_update(
+            student_id=req.student_id,
+            course_id=task.course_id,
+            concept_id=task.concept_id,
+            score=score,
+        )
 
-    return CheckAnswerResponse(score=score, correct=correct, explanation=explanation)
+    spec_explanation = (task.json_spec or {}).get("explanation") or llm_explanation
+
+    if correct:
+        return CheckAnswerResponse(
+            score=score, correct=True, attempt_no=attempt_no, can_retry=False,
+            hint=None, explanation=spec_explanation,
+        )
+
+    if attempt_no < MAX_ATTEMPTS:
+        hint = (task.json_spec or {}).get("hint") or FALLBACK_HINT
+        return CheckAnswerResponse(
+            score=score, correct=False, attempt_no=attempt_no, can_retry=True,
+            hint=hint, explanation=None,
+        )
+
+    return CheckAnswerResponse(
+        score=score, correct=False, attempt_no=attempt_no, can_retry=False,
+        hint=None, explanation=spec_explanation,
+    )

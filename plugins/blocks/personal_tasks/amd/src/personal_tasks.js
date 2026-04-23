@@ -100,20 +100,39 @@ define(['jquery', 'core/str'], function($, Str) {
 
     function showFeedback($card, data) {
         var $fb = $card.find('.pt-feedback');
-        var correct = data.correct;
         var score = Math.round((data.score || 0) * 100);
-        var explanation = data.explanation || '';
+        var attemptNo = data.attempt_no || 1;
 
-        var alertClass = correct ? 'alert-success' : 'alert-warning';
-        var label = correct ? 'Верно' : 'Неверно';
+        var alertClass, label, body;
+        if (data.correct) {
+            alertClass = 'alert-success';
+            label = '✓ Верно!';
+            body = $('<span>').text(data.explanation || '').html();
+        } else if (data.can_retry) {
+            alertClass = 'alert-warning';
+            label = '💡 Подумай ещё!';
+            body = $('<span>').text(data.hint || '').html() +
+                '<br><small class="text-muted">Попытка ' + attemptNo + ' из 2</small>';
+        } else {
+            alertClass = 'alert-danger';
+            label = '✗ Не получилось';
+            body = $('<span>').text(data.explanation || '').html() +
+                '<br><small class="text-muted">Попытка ' + attemptNo + ' из 2</small>';
+        }
 
         $fb.html(
             '<div class="alert ' + alertClass + ' p-2 small mb-0">' +
             '<strong>' + label + '</strong> (' + score + '%)<br>' +
-            $('<span>').text(explanation).html() +
+            body +
             '</div>'
         );
         $fb.show();
+
+        // Lock the card on final outcome (correct OR retries exhausted)
+        if (!data.can_retry) {
+            $card.find('input, textarea').prop('disabled', true);
+            $card.find('.check-answer').prop('disabled', true).text('Завершено');
+        }
     }
 
     function doGenerate() {
@@ -188,14 +207,18 @@ define(['jquery', 'core/str'], function($, Str) {
                 $card.find('.pt-feedback')
                     .html('<div class="alert alert-danger p-2 small mb-0">' + data.error + '</div>')
                     .show();
+                $btn.prop('disabled', false).text('Проверить');
                 return;
             }
             showFeedback($card, data);
+            // showFeedback locks the card on final outcome; only re-enable on retry
+            if (data.can_retry) {
+                $btn.prop('disabled', false).text('Попробовать снова');
+            }
         }).fail(function() {
             $card.find('.pt-feedback')
                 .html('<div class="alert alert-danger p-2 small mb-0">Сервис недоступен.</div>')
                 .show();
-        }).always(function() {
             $btn.prop('disabled', false).text('Проверить');
         });
     }
