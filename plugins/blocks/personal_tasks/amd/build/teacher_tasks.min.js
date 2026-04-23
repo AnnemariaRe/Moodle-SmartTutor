@@ -139,12 +139,12 @@ define(['jquery'], function($) {
         // Action buttons
         var $actions = $('<div class="d-flex flex-wrap" style="gap:4px;"></div>');
         if (task.status !== 'approved') {
-            $actions.append('<button class="btn btn-success btn-sm pt-approve-btn">Одобрить</button>');
+            $actions.append('<button class="btn btn-success btn-sm pt-approve-btn" style="width:calc(50% - 2px);">Одобрить</button>');
         }
         if (task.status !== 'rejected') {
-            $actions.append('<button class="btn btn-danger btn-sm pt-reject-btn">Отклонить</button>');
+            $actions.append('<button class="btn btn-danger btn-sm pt-reject-btn" style="width:calc(50% - 2px);">Отклонить</button>');
         }
-        $actions.append('<button class="btn btn-outline-secondary btn-sm pt-edit-btn">Редактировать</button>');
+        $actions.append('<button class="btn btn-outline-secondary btn-sm pt-edit-btn" style="width:100%; margin-top:4px;">Редактировать</button>');
         $body.append($actions);
 
         // Edit form (hidden)
