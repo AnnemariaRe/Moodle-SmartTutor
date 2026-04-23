@@ -83,7 +83,7 @@ class block_aiassistant extends block_base {
 .bai-wrap {
   display: flex;
   flex-direction: column;
-  height: 480px;
+  height: 320px;
   font-size: 0.875rem;
   font-family: inherit;
   border: 1px solid #e2e8f0;
