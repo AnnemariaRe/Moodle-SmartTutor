@@ -210,6 +210,44 @@ async def get_student_recommendations(
         ).scalars().first()
 
         if current_item and current_item.role == "placement":
+            # If student already has mastery data, placement is done — fall through
+            # to normal recommendations (what to study next). Only block for brand-new students.
+            if not mastery_map:
+                return RecommendationsOut(
+                    student_id=student_id,
+                    course_id=course_id,
+                    method="rule_based",
+                    features_used=base_features,
+                    fallback_used=False,
+                    recommendations=[],
+                )
+            # Placement completed: recommend next unmastered concept's content
+            post_placement_recs = await get_recommendations(
+                db, student_id, course_id, exclude_cmid=cmid
+            )
+            if post_placement_recs:
+                return RecommendationsOut(
+                    student_id=student_id,
+                    course_id=course_id,
+                    method="rule_based",
+                    features_used=base_features,
+                    fallback_used=False,
+                    context="post_placement",
+                    context_message="Входной тест пройден — вот что изучить дальше",
+                    recommendations=post_placement_recs,
+                )
+            # All mastered
+            if all(v >= 0.7 for v in mastery_map.values()):
+                return RecommendationsOut(
+                    student_id=student_id,
+                    course_id=course_id,
+                    method="rule_based",
+                    features_used=base_features,
+                    fallback_used=False,
+                    context="completed",
+                    context_message="Поздравляем! Все концепты курса освоены.",
+                    recommendations=[],
+                )
             return RecommendationsOut(
                 student_id=student_id,
                 course_id=course_id,
