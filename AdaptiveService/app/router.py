@@ -172,8 +172,8 @@ async def get_student_recommendations(
 
     ctx_meta: dict = {}
 
-    # New student with no attempt history → recommend placement test first
-    if not stats_map:
+    # New student with no history (no attempts AND no mastery) → recommend placement test
+    if not stats_map and not mastery_map:
         placement_item = (
             await db.execute(
                 select(ContentItem).where(
@@ -391,6 +391,15 @@ async def get_student_recommendations(
             )
 
     recs = await get_recommendations(db, student_id, course_id, exclude_cmid=cmid)
+
+    # All concepts mastered — return a friendly completion message instead of empty list
+    if not recs and mastery_map and all(v >= 0.7 for v in mastery_map.values()):
+        ctx_meta.setdefault(
+            "context_message",
+            "Поздравляем! Все концепты курса освоены. Продолжайте практиковаться для закрепления.",
+        )
+        ctx_meta.setdefault("context", "completed")
+
     return RecommendationsOut(
         student_id=student_id,
         course_id=course_id,
