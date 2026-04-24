@@ -304,7 +304,7 @@ async def get_student_recommendations(
                 target_ids = weak_prereq_ids
             elif readiness < 0.4:
                 context = "review_current"
-                context_message = f"Mastery: {current_mastery:.0%} — рекомендуем дополнительные материалы"
+                context_message = "Рекомендуем дополнительные материалы"
                 target_ids = [cid]
             elif readiness >= 0.7:
                 context = "ready_to_continue"
