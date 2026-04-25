@@ -10,7 +10,7 @@ from app.database import get_db
 from app.dkt import MODEL_DIR as DKT_DIR
 from app.graph_builder import auto_extract_graph
 from app.lightfm_model import model_path as lfm_path
-from app.models import AssessmentMap, Concept, ConceptPrereq, ContentItem, StudentConceptMastery, StudentConceptStats
+from app.models import AssessmentMap, Concept, ConceptPrereq, ContentItem, RecommendationLog, StudentConceptMastery, StudentConceptStats
 from app.schemas import (
     AdminGraphOut,
     AssessmentMapOut,
@@ -381,4 +381,103 @@ async def _run_lightfm_eval(saved: dict, course_id: int, k: int, test_size: floa
             "auc": "хорошо ≥ 0.75, плохо < 0.60",
             "split_method": "temporal = сортировка по времени (честнее); random = случайный (нет timestamps)",
         },
+    }
+
+
+@router.get("/recommendations-stats")
+async def recommendations_stats(
+    course_id: int,
+    window_minutes: int = 30,
+    db: AsyncSession = Depends(get_db),
+):
+    """Hit-rate analytics for /v1/recommendations.
+
+    For each logged recommendation, check whether the student opened ANY
+    recommended cmid within `window_minutes` after the recommendation was shown.
+    Hit rate = hits / total_logged.
+    Requires TRACKING_DB_URL to query events.
+    """
+    import json as _json
+    import os as _os
+    from datetime import timedelta
+
+    logs = (
+        await db.execute(
+            select(RecommendationLog).where(RecommendationLog.course_id == course_id)
+        )
+    ).scalars().all()
+
+    if not logs:
+        return {"course_id": course_id, "total_logged": 0, "hits": 0, "hit_rate": 0.0,
+                "by_method": {}, "note": "No recommendations logged yet."}
+
+    # Aggregate by method
+    by_method_total: dict[str, int] = {}
+    by_method_hits: dict[str, int] = {}
+    for log in logs:
+        by_method_total[log.method] = by_method_total.get(log.method, 0) + 1
+
+    tracking_url = _os.getenv("TRACKING_DB_URL", "")
+    if not tracking_url:
+        return {
+            "course_id": course_id,
+            "total_logged": len(logs),
+            "by_method_total": by_method_total,
+            "note": "TRACKING_DB_URL not set — cannot compute hits.",
+        }
+
+    try:
+        import asyncpg
+        conn = await asyncpg.connect(tracking_url)
+    except Exception as exc:
+        return {
+            "course_id": course_id,
+            "total_logged": len(logs),
+            "by_method_total": by_method_total,
+            "note": f"TrackingService DB unreachable ({exc}) — counts only.",
+        }
+
+    hits = 0
+    skipped_empty = 0
+    try:
+        for log in logs:
+            recs = _json.loads(log.recommended_cmids or "[]")
+            if not recs:
+                skipped_empty += 1
+                continue
+            window_end = log.created_at + timedelta(minutes=window_minutes)
+            row = await conn.fetchrow(
+                """SELECT 1 FROM events
+                   WHERE student_id=$1 AND course_id=$2 AND cmid = ANY($3::int[])
+                     AND to_timestamp(ts) BETWEEN $4 AND $5
+                   LIMIT 1""",
+                log.student_id, course_id, recs, log.created_at, window_end,
+            )
+            if row:
+                hits += 1
+                by_method_hits[log.method] = by_method_hits.get(log.method, 0) + 1
+    finally:
+        await conn.close()
+
+    total_with_recs = len(logs) - skipped_empty
+    hit_rate = hits / total_with_recs if total_with_recs > 0 else 0.0
+
+    by_method = {
+        m: {
+            "total": by_method_total[m],
+            "hits": by_method_hits.get(m, 0),
+            "hit_rate": round(by_method_hits.get(m, 0) / by_method_total[m], 4) if by_method_total[m] else 0.0,
+        }
+        for m in by_method_total
+    }
+
+    return {
+        "course_id": course_id,
+        "window_minutes": window_minutes,
+        "total_logged": len(logs),
+        "with_recommendations": total_with_recs,
+        "empty_recs": skipped_empty,
+        "hits": hits,
+        "hit_rate": round(hit_rate, 4),
+        "by_method": by_method,
     }

@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,7 +9,7 @@ from app.dkt import DKTPredictor, get_dkt_predictions
 from app.lightfm_model import model_path, recommend as lightfm_recommend
 from app.models import (
     AssessmentMap, Concept, ConceptPrereq, ContentItem,
-    StudentConceptMastery, StudentConceptStats,
+    RecommendationLog, StudentConceptMastery, StudentConceptStats,
 )
 from app.recommendations import get_recommendations
 from app.study_history import fetch_studied_cmids
@@ -25,6 +27,28 @@ from app.schemas import (
 )
 
 router = APIRouter(prefix="/v1")
+
+
+async def _log_and_return(
+    db: AsyncSession,
+    out: RecommendationsOut,
+    cmid: int | None,
+) -> RecommendationsOut:
+    """Persist a recommendation response and return it."""
+    try:
+        db.add(RecommendationLog(
+            student_id=out.student_id,
+            course_id=out.course_id,
+            current_cmid=cmid,
+            recommended_cmids=json.dumps([r.moodle_cmid for r in out.recommendations]),
+            method=out.method,
+            context=getattr(out, "context", None),
+        ))
+        await db.commit()
+    except Exception:
+        # Never block the response on logging failures
+        await db.rollback()
+    return out
 
 
 def _make_rec_item(item: ContentItem, concept_name: str, reason: str) -> RecommendationItem:
@@ -205,7 +229,7 @@ async def get_student_recommendations(
             ).scalars().first()
             pname = placement_concept.name if placement_concept else ""
             msg = "Начните с входного теста, чтобы оценить ваш уровень"
-            return RecommendationsOut(
+            return await _log_and_return(db, RecommendationsOut(
                 student_id=student_id,
                 course_id=course_id,
                 method="rule_based",
@@ -214,7 +238,7 @@ async def get_student_recommendations(
                 context="placement",
                 context_message=msg,
                 recommendations=[_make_rec_item(placement_item, pname, msg)],
-            )
+            ), cmid)
 
     if cmid is not None:
         current_item = (
@@ -230,20 +254,20 @@ async def get_student_recommendations(
             # If student already has mastery data, placement is done — fall through
             # to normal recommendations (what to study next). Only block for brand-new students.
             if not mastery_map:
-                return RecommendationsOut(
+                return await _log_and_return(db, RecommendationsOut(
                     student_id=student_id,
                     course_id=course_id,
                     method="rule_based",
                     features_used=base_features,
                     fallback_used=False,
                     recommendations=[],
-                )
+                ), cmid)
             # Placement completed: recommend next unmastered concept's content
             post_placement_recs = await get_recommendations(
                 db, student_id, course_id, exclude_cmids=exclude_cmids
             )
             if post_placement_recs:
-                return RecommendationsOut(
+                return await _log_and_return(db, RecommendationsOut(
                     student_id=student_id,
                     course_id=course_id,
                     method="rule_based",
@@ -252,10 +276,10 @@ async def get_student_recommendations(
                     context="post_placement",
                     context_message="Входной тест пройден — вот что изучить дальше",
                     recommendations=post_placement_recs,
-                )
+                ), cmid)
             # All mastered
             if all(v >= 0.7 for v in mastery_map.values()):
-                return RecommendationsOut(
+                return await _log_and_return(db, RecommendationsOut(
                     student_id=student_id,
                     course_id=course_id,
                     method="rule_based",
@@ -264,15 +288,15 @@ async def get_student_recommendations(
                     context="completed",
                     context_message="Поздравляем! Все концепты курса освоены.",
                     recommendations=[],
-                )
-            return RecommendationsOut(
+                ), cmid)
+            return await _log_and_return(db, RecommendationsOut(
                 student_id=student_id,
                 course_id=course_id,
                 method="rule_based",
                 features_used=base_features,
                 fallback_used=False,
                 recommendations=[],
-            )
+            ), cmid)
 
         if current_item:
             cid = current_item.concept_id
@@ -389,7 +413,7 @@ async def get_student_recommendations(
                     key=lambda i: abs(i.difficulty - mastery_map.get(i.concept_id, 0.0)),
                 )
                 if ctx_items_sorted:
-                    return RecommendationsOut(
+                    return await _log_and_return(db, RecommendationsOut(
                         student_id=student_id,
                         course_id=course_id,
                         method="rule_based",
@@ -400,7 +424,7 @@ async def get_student_recommendations(
                             for i in ctx_items_sorted[:3]
                         ],
                         **ctx_meta,
-                    )
+                    ), cmid)
                 # ctx_items empty: fall through to LightFM/rule-based below
             # ready_to_continue: fall through to LightFM/rule-based below
 
@@ -440,7 +464,7 @@ async def get_student_recommendations(
             if c in items_by_cmid
         ]
         if recs:
-            return RecommendationsOut(
+            return await _log_and_return(db, RecommendationsOut(
                 student_id=student_id,
                 course_id=course_id,
                 method="lightfm_hybrid",
@@ -448,7 +472,7 @@ async def get_student_recommendations(
                 fallback_used=False,
                 recommendations=recs,
                 **ctx_meta,
-            )
+            ), cmid)
 
     recs = await get_recommendations(db, student_id, course_id, exclude_cmids=exclude_cmids)
 
@@ -460,7 +484,7 @@ async def get_student_recommendations(
         )
         ctx_meta.setdefault("context", "completed")
 
-    return RecommendationsOut(
+    return await _log_and_return(db, RecommendationsOut(
         student_id=student_id,
         course_id=course_id,
         method="rule_based",
@@ -468,4 +492,4 @@ async def get_student_recommendations(
         fallback_used=model_path(course_id).exists(),
         recommendations=recs,
         **ctx_meta,
-    )
+    ), cmid)
