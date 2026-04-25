@@ -13,8 +13,9 @@ async def get_recommendations(
     student_id: int,
     course_id: int,
     max_items: int = MAX_RECOMMENDATIONS,
-    exclude_cmid: int | None = None,
+    exclude_cmids: set[int] | None = None,
 ) -> list[RecommendationItem]:
+    exclude_cmids = set(exclude_cmids) if exclude_cmids else set()
     # 1. Load all concepts for this course
     concepts = {
         c.id: c
@@ -93,9 +94,7 @@ async def get_recommendations(
 
     # 7. Pick content items — difficulty ≈ mastery + 0.15, exclude placement items
     recommendations: list[RecommendationItem] = []
-    seen_cmids: set[int] = set()
-    if exclude_cmid is not None:
-        seen_cmids.add(exclude_cmid)
+    seen_cmids: set[int] = set(exclude_cmids)
 
     for current_mastery, concept_id, concept in candidates:
         if len(recommendations) >= max_items:
@@ -104,7 +103,6 @@ async def get_recommendations(
         target_difficulty = min(1.0, current_mastery + 0.15)
 
         attempts, correct = stats_map.get(concept_id, (0, 0))
-        fail_rate = 1.0 - (correct / attempts) if attempts > 0 else 0.0
 
         direct_filter = [
             ContentItem.course_id == course_id,
@@ -112,8 +110,8 @@ async def get_recommendations(
             ContentItem.role != "placement",
             ContentItem.visible == True,
         ]
-        if exclude_cmid is not None:
-            direct_filter.append(ContentItem.moodle_cmid != exclude_cmid)
+        if exclude_cmids:
+            direct_filter.append(ContentItem.moodle_cmid.notin_(exclude_cmids))
         items = (
             await db.execute(select(ContentItem).where(*direct_filter))
         ).scalars().all()
@@ -126,8 +124,8 @@ async def get_recommendations(
                 ContentItem.role != "placement",
                 ContentItem.visible == True,
             ]
-            if exclude_cmid is not None:
-                am_filter.append(ContentItem.moodle_cmid != exclude_cmid)
+            if exclude_cmids:
+                am_filter.append(ContentItem.moodle_cmid.notin_(exclude_cmids))
             items = (
                 await db.execute(
                     select(ContentItem)

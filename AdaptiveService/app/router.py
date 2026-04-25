@@ -10,6 +10,7 @@ from app.models import (
     StudentConceptMastery, StudentConceptStats,
 )
 from app.recommendations import get_recommendations
+from app.study_history import fetch_studied_cmids
 from app.schemas import (
     AssessmentMapCreate,
     ConceptCreate,
@@ -170,6 +171,22 @@ async def get_student_recommendations(
         get_dkt_predictions(stats_map, course_id) if dkt_available else None
     )
 
+    # Build cmid → type map for the course (needed by fetch_studied_cmids
+    # to decide whether a "viewed" event for a non-scored type counts as studied).
+    item_type_rows = (
+        await db.execute(
+            select(ContentItem.moodle_cmid, ContentItem.type).where(
+                ContentItem.course_id == course_id,
+            )
+        )
+    ).all()
+    item_types: dict[int, str] = {row[0]: row[1] for row in item_type_rows}
+
+    studied_cmids = await fetch_studied_cmids(student_id, course_id, item_types)
+    exclude_cmids: set[int] = set(studied_cmids)
+    if cmid is not None:
+        exclude_cmids.add(cmid)
+
     ctx_meta: dict = {}
 
     # New student with no history (no attempts AND no mastery) → recommend placement test
@@ -223,7 +240,7 @@ async def get_student_recommendations(
                 )
             # Placement completed: recommend next unmastered concept's content
             post_placement_recs = await get_recommendations(
-                db, student_id, course_id, exclude_cmid=cmid
+                db, student_id, course_id, exclude_cmids=exclude_cmids
             )
             if post_placement_recs:
                 return RecommendationsOut(
@@ -327,31 +344,33 @@ async def get_student_recommendations(
             )
 
             if target_ids:
+                direct_where = [
+                    ContentItem.course_id == course_id,
+                    ContentItem.concept_id.in_(target_ids),
+                    ContentItem.role != "placement",
+                    ContentItem.visible == True,
+                ]
+                if exclude_cmids:
+                    direct_where.append(ContentItem.moodle_cmid.notin_(exclude_cmids))
                 ctx_items = (
-                    await db.execute(
-                        select(ContentItem).where(
-                            ContentItem.course_id == course_id,
-                            ContentItem.concept_id.in_(target_ids),
-                            ContentItem.role != "placement",
-                            ContentItem.visible == True,
-                            ContentItem.moodle_cmid != cmid,
-                        )
-                    )
+                    await db.execute(select(ContentItem).where(*direct_where))
                 ).scalars().all()
 
                 if not ctx_items:
                     # Fallback: find items via AssessmentMap for concepts without direct ContentItems
+                    am_where = [
+                        ContentItem.course_id == course_id,
+                        AssessmentMap.concept_id.in_(target_ids),
+                        ContentItem.role != "placement",
+                        ContentItem.visible == True,
+                    ]
+                    if exclude_cmids:
+                        am_where.append(ContentItem.moodle_cmid.notin_(exclude_cmids))
                     ctx_items = (
                         await db.execute(
                             select(ContentItem)
                             .join(AssessmentMap, AssessmentMap.content_item_id == ContentItem.id)
-                            .where(
-                                ContentItem.course_id == course_id,
-                                AssessmentMap.concept_id.in_(target_ids),
-                                ContentItem.role != "placement",
-                                ContentItem.visible == True,
-                                ContentItem.moodle_cmid != cmid,
-                            )
+                            .where(*am_where)
                         )
                     ).scalars().all()
 
@@ -386,6 +405,9 @@ async def get_student_recommendations(
             # ready_to_continue: fall through to LightFM/rule-based below
 
     lightfm_cmids = lightfm_recommend(course_id, student_id)
+    if lightfm_cmids:
+        # Drop already-studied content from LightFM output too
+        lightfm_cmids = [c for c in lightfm_cmids if c not in exclude_cmids]
     if lightfm_cmids:
         items_by_cmid = {
             i.moodle_cmid: i
@@ -428,7 +450,7 @@ async def get_student_recommendations(
                 **ctx_meta,
             )
 
-    recs = await get_recommendations(db, student_id, course_id, exclude_cmid=cmid)
+    recs = await get_recommendations(db, student_id, course_id, exclude_cmids=exclude_cmids)
 
     # All concepts mastered — return a friendly completion message instead of empty list
     if not recs and mastery_map and all(v >= 0.7 for v in mastery_map.values()):

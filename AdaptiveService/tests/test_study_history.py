@@ -1,0 +1,54 @@
+"""Minimal tests for study_history classifier."""
+
+from app.study_history import _classify
+
+
+def _row(cmid, event_type, payload=None):
+    return {"cmid": cmid, "event_type": event_type, "payload": payload}
+
+
+def test_passed_quiz_is_studied():
+    rows = [_row(514, "quiz_attempt_submitted", {"score": 0.8, "max_score": 1.0})]
+    assert _classify(rows, item_types={514: "quiz"}) == {514}
+
+
+def test_failed_quiz_is_not_studied():
+    """Score < 0.7 keeps the quiz recommendable for retry."""
+    rows = [_row(514, "quiz_attempt_submitted", {"score": 0.3, "max_score": 1.0})]
+    assert _classify(rows, item_types={514: "quiz"}) == set()
+
+
+def test_failed_quiz_overrides_prior_view():
+    """Even if a quiz was viewed, a subsequent failed attempt makes it eligible again."""
+    rows = [
+        _row(514, "course_module_viewed"),
+        _row(514, "quiz_attempt_submitted", {"score": 0.0, "max_score": 1.0}),
+    ]
+    assert _classify(rows, item_types={514: "quiz"}) == set()
+
+
+def test_lesson_view_counts_as_studied():
+    rows = [_row(513, "course_module_viewed")]
+    assert _classify(rows, item_types={513: "lesson"}) == {513}
+
+
+def test_quiz_view_alone_is_not_studied():
+    """Viewing a quiz without attempting it shouldn't exclude it from recommendations."""
+    rows = [_row(514, "course_module_viewed")]
+    assert _classify(rows, item_types={514: "quiz"}) == set()
+
+
+def test_lesson_completed_event():
+    rows = [_row(513, "lesson_completed")]
+    assert _classify(rows, item_types={513: "lesson"}) == {513}
+
+
+def test_passed_assign():
+    rows = [_row(700, "assign_submission_graded", {"score": 9.0, "max_score": 10.0})]
+    assert _classify(rows, item_types={700: "assign"}) == {700}
+
+
+def test_payload_as_json_string():
+    """asyncpg sometimes returns JSONB as str — classifier must handle it."""
+    rows = [_row(514, "quiz_attempt_submitted", '{"score": 0.9, "max_score": 1.0}')]
+    assert _classify(rows, item_types={514: "quiz"}) == {514}
