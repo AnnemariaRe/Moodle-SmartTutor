@@ -50,11 +50,12 @@ async def _pick_approved_tasks(
     Tasks answered incorrectly (score < MASTERY_PASSED) remain eligible
     and may be shown again.
     """
+    # Exclude any task the student has ever passed, regardless of concept.
+    # (concept_id filter removed: TaskGenerator and AdaptiveService may use different concept_ids)
     passed_result = await db.execute(
         select(TaskAttempt.task_id)
         .where(
             TaskAttempt.student_id == student_id,
-            TaskAttempt.concept_id == concept_id,
             TaskAttempt.score >= MASTERY_PASSED,
             TaskAttempt.task_id.is_not(None),
         )
