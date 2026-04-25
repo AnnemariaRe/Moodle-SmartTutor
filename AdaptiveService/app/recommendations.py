@@ -4,7 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import AssessmentMap, Concept, ConceptPrereq, ContentItem, StudentConceptMastery, StudentConceptStats
 from app.schemas import RecommendationItem
 
-MASTERY_THRESHOLD = 0.7
+MASTERY_THRESHOLD = 0.7         # mastery >= this → concept is shown as "mastered" (UI)
+PREREQ_UNLOCK_THRESHOLD = 0.5   # mastery >= this → concept is "good enough" to unlock downstream
 MAX_RECOMMENDATIONS = 3
 
 
@@ -69,7 +70,7 @@ async def get_recommendations(
             continue
         prereq_ids = prereqs.get(cid, [])
         all_prereqs_met = all(
-            masteries.get(pid, 0.0) >= MASTERY_THRESHOLD for pid in prereq_ids
+            masteries.get(pid, 0.0) >= PREREQ_UNLOCK_THRESHOLD for pid in prereq_ids
         )
         if all_prereqs_met:
             candidates.append((current_mastery, cid, concept))
