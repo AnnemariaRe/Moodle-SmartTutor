@@ -35,23 +35,31 @@ def _make_scm(mastery: float) -> StudentConceptMastery:
 # EMA mastery (role="regular") 
 
 class TestEMAMastery:
-    """Tests for the weighted EMA formula: delta = weight*(target-old)*0.5"""
+    """First evidence (old=0) adopts target directly; subsequent attempts use EMA."""
 
     @pytest.mark.asyncio
-    async def test_high_score_increases_mastery(self):
+    async def test_first_attempt_high_score_adopts_target(self):
+        """6/7 ≈ 0.86 on first attempt should give mastery 0.8, not 0.4."""
         scm = _make_scm(0.0)
         db = _make_db(scm)
-        # rel_score=0.9 → target=0.8; delta = 1.0*(0.8-0.0)*0.5 = 0.4
-        await _update_mastery(db, 1, 1, 1, rel_score=0.9, weight=1.0, role="regular")
-        assert scm.mastery == pytest.approx(0.4, abs=1e-4)
+        await _update_mastery(db, 1, 1, 1, rel_score=0.86, weight=1.0, role="regular")
+        assert scm.mastery == pytest.approx(0.8, abs=1e-4)
 
     @pytest.mark.asyncio
-    async def test_mid_score_targets_05(self):
+    async def test_first_attempt_mid_score_adopts_05(self):
         scm = _make_scm(0.0)
         db = _make_db(scm)
-        # rel_score=0.6 → target=0.5; delta = 1.0*(0.5-0.0)*0.5 = 0.25
         await _update_mastery(db, 1, 1, 1, rel_score=0.6, weight=1.0, role="regular")
-        assert scm.mastery == pytest.approx(0.25, abs=1e-4)
+        assert scm.mastery == pytest.approx(0.5, abs=1e-4)
+
+    @pytest.mark.asyncio
+    async def test_subsequent_high_score_uses_ema(self):
+        """After a first attempt, EMA smooths further attempts."""
+        scm = _make_scm(0.5)  # already has prior mastery
+        db = _make_db(scm)
+        # rel_score=0.9 → target=0.8; delta = 1.0*(0.8-0.5)*0.5 = 0.15 → 0.65
+        await _update_mastery(db, 1, 1, 1, rel_score=0.9, weight=1.0, role="regular")
+        assert scm.mastery == pytest.approx(0.65, abs=1e-4)
 
     @pytest.mark.asyncio
     async def test_low_score_targets_02(self):
@@ -63,69 +71,55 @@ class TestEMAMastery:
 
     @pytest.mark.asyncio
     async def test_mastery_capped_at_1(self):
-        scm = _make_scm(0.9)
+        # Subsequent update with very high weight must not exceed 1.0
+        scm = _make_scm(0.5)
         db = _make_db(scm)
-        # rel_score=0.9 → target=0.8; delta = 1.0*(0.8-0.9)*0.5 = -0.05 → goes down slightly
-        # With weight=4 and old=0.9: delta = 4*(0.8-0.9)*0.5 = -0.2 → 0.7
-        # Use very high weight to test cap:
-        scm2 = _make_scm(0.95)
-        db2 = _make_db(scm2)
-        # delta = 2*(0.8-0.95)*0.5 = -0.15 → result is 0.8
-        scm3 = _make_scm(0.0)
-        db3 = _make_db(scm3)
-        # delta = 10*(0.8-0.0)*0.5 = 4.0 → clipped to 1.0
-        await _update_mastery(db3, 1, 1, 1, rel_score=0.9, weight=10.0, role="regular")
-        assert scm3.mastery == pytest.approx(1.0, abs=1e-4)
+        # delta = 10*(0.8-0.5)*0.5 = 1.5 → 0.5 + 1.5 = 2.0 → clipped to 1.0
+        await _update_mastery(db, 1, 1, 1, rel_score=0.9, weight=10.0, role="regular")
+        assert scm.mastery == pytest.approx(1.0, abs=1e-4)
 
     @pytest.mark.asyncio
     async def test_mastery_floored_at_0(self):
-        scm = _make_scm(0.1)
-        db = _make_db(scm)
-        # rel_score=0.0 → target=0.2; delta = 10*(0.2-0.1)*0.5 = 0.5
         scm = _make_scm(0.3)
         db = _make_db(scm)
+        # rel_score=0.0 → target=0.2; delta = 10*(0.2-0.3)*0.5 = -0.5 → 0.3 - 0.5 = -0.2 → 0.0
         await _update_mastery(db, 1, 1, 1, rel_score=0.0, weight=10.0, role="regular")
         assert scm.mastery == pytest.approx(0.0, abs=1e-4)
 
     @pytest.mark.asyncio
-    async def test_weight_scales_delta(self):
+    async def test_first_attempt_weight_scales_target(self):
+        """On cold-start, weight scales the adopted target."""
         scm1 = _make_scm(0.0)
         db1 = _make_db(scm1)
         await _update_mastery(db1, 1, 1, 1, rel_score=0.9, weight=0.5, role="regular")
-        # delta = 0.5 * (0.8 - 0.0) * 0.5 = 0.2
-        assert scm1.mastery == pytest.approx(0.2, abs=1e-4)
-
-        scm2 = _make_scm(0.0)
-        db2 = _make_db(scm2)
-        await _update_mastery(db2, 1, 1, 1, rel_score=0.9, weight=2.0, role="regular")
-        # delta = 2.0 * (0.8 - 0.0) * 0.5 = 0.8
-        assert scm2.mastery == pytest.approx(0.8, abs=1e-4)
+        # First attempt: target=0.8, weight=0.5 → 0.4
+        assert scm1.mastery == pytest.approx(0.4, abs=1e-4)
 
     @pytest.mark.asyncio
     async def test_new_student_record_created(self):
-        """When no SCM row exists, a new one is inserted with mastery starting at 0."""
+        """When no SCM row exists, a new one is inserted and gets target directly."""
         db = _make_db(existing_record=None)
         await _update_mastery(db, 42, 5, 7, rel_score=0.9, weight=1.0, role="regular")
         assert db.add.called
         added = db.add.call_args[0][0]
-        # The new record's mastery is set after add(), so check via scm attr
-        assert added.mastery == pytest.approx(0.4, abs=1e-4)
+        # First evidence: target=0.8, mastery should jump to 0.8
+        assert added.mastery == pytest.approx(0.8, abs=1e-4)
 
     @pytest.mark.asyncio
     async def test_exact_08_boundary_hits_high_target(self):
         scm = _make_scm(0.0)
         db = _make_db(scm)
-        # rel_score exactly 0.8 → target=0.8
+        # rel_score exactly 0.8 → target=0.8 → first-attempt adopts directly
         await _update_mastery(db, 1, 1, 1, rel_score=0.8, weight=1.0, role="regular")
-        assert scm.mastery == pytest.approx(0.4, abs=1e-4)
+        assert scm.mastery == pytest.approx(0.8, abs=1e-4)
 
     @pytest.mark.asyncio
     async def test_exact_05_boundary_hits_mid_target(self):
         scm = _make_scm(0.0)
         db = _make_db(scm)
-        # rel_score exactly 0.5 → target=0.5
+        # rel_score exactly 0.5 → target=0.5 → first-attempt adopts directly
         await _update_mastery(db, 1, 1, 1, rel_score=0.5, weight=1.0, role="regular")
-        assert scm.mastery == pytest.approx(0.25, abs=1e-4)
+        assert scm.mastery == pytest.approx(0.5, abs=1e-4)
 
 
 class TestPlacementMastery:

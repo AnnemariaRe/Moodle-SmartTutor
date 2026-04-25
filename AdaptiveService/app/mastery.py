@@ -167,9 +167,15 @@ async def _update_mastery(
         # Placement test: set mastery directly from score (no EMA)
         new_mastery = round(min(1.0, rel_score * weight), 4)
     else:
-        # EMA: mastery converges toward discrete target (0.2 / 0.5 / 0.8)
+        # Discrete target by performance band: 0.8 / 0.5 / 0.2
         target = 0.8 if rel_score >= 0.8 else (0.5 if rel_score >= 0.5 else 0.2)
-        new_mastery = round(max(0.0, min(1.0, old + weight * (target - old) * 0.5)), 4)
+        if old == 0.0:
+            # First evidence — adopt target directly so a strong first attempt
+            # doesn't get diluted to half by EMA cold-start.
+            new_mastery = round(min(1.0, target * weight), 4)
+        else:
+            # Subsequent attempts: EMA smooths out noisy attempts.
+            new_mastery = round(max(0.0, min(1.0, old + weight * (target - old) * 0.5)), 4)
 
     logger.info(
         "Mastery: student=%s concept=%s  %.2f → %.2f  (score=%.2f role=%s)",
