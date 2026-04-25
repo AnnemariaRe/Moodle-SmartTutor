@@ -13,9 +13,9 @@
 | Сервис | Описание |
 |--------|----------|
 | [**TrackingService**](TrackingService/README.md) | Принимает события Moodle по HTTP, сохраняет в PostgreSQL, публикует в RabbitMQ |
-| [**AdaptiveService**](AdaptiveService/README.md) | Граф знаний, отслеживание уровня освоения (BKT), рекомендации (LightFM + правиловая модель), предсказания DKT |
-| [**AIAssist**](AIAssist/README.md) | RAG-ассистент для ответов на вопросы по курсу (pgvector + OpenAI) |
-| [**TaskGenerator**](TaskGenerator/README.md) | Генерация персонализированных тренировочных заданий на основе уровня освоения (OpenAI) |
+| [**AdaptiveService**](AdaptiveService/README.md) | Граф знаний, mastery (EMA), фильтрация уже изученного контента, рекомендации (LightFM + rule-based), DKT для предсказания вероятности правильного ответа, hit-rate аналитика |
+| [**AIAssist**](AIAssist/README.md) | RAG-ассистент по курсу (pgvector + OpenAI). Также экспортирует `/v1/internal/search` для других сервисов (используется TaskGenerator для генерации заданий с опорой на материалы курса) |
+| [**TaskGenerator**](TaskGenerator/README.md) | Генерация персонализированных заданий с RAG-контекстом из AIAssist. BKT для подбора сложности. Подсказка после первой ошибки + повторная попытка |
 | [**CoursePortrait**](CoursePortrait/README.md) | Аналитика курсов: тепловые карты, предсказание отвала (XGBoost), анализ сложности, интеграция с Яндекс Метрикой |
 
 ---
@@ -41,6 +41,7 @@ docker network create moodle_shared_net
 docker network create trackingservice_internal
 docker network create rabbitmq_shared_net
 docker network create adaptive_shared_net
+docker network create tracking_shared_net   # для прямого доступа AdaptiveService/TaskGenerator к БД TrackingService
 ```
 
 ### 2. Настройка переменных окружения
@@ -57,9 +58,14 @@ cp .env.example .env
 |--------|------------|----------|
 | AdaptiveService | `MOODLE_TOKEN` | Токен Moodle REST API |
 | AdaptiveService | `MOODLE_URL` | Базовый URL Moodle |
+| AdaptiveService | `TRACKING_DB_URL` | DSN БД TrackingService (для studied-фильтра + hit-rate). Например: `postgresql://tracking:tracking@trackingservice-postgres-1:5432/tracking` |
+| AdaptiveService | `OPENAI_BASE_URL` | (для РФ) `https://api.proxyapi.ru/openai/v1` |
 | AIAssist | `OPENAI_API_KEY` | Ключ OpenAI API для RAG |
 | AIAssist | `MOODLE_TOKEN` | Токен Moodle REST API |
+| AIAssist | `OPENAI_BASE_URL` | (для РФ) ProxyAPI base URL |
 | TaskGenerator | `OPENAI_API_KEY` | Ключ OpenAI API для генерации заданий |
+| TaskGenerator | `AIASSIST_URL` | URL AIAssist для RAG-контекста (по умолчанию `http://ai-assistant:8003`) |
+| TaskGenerator | `OPENAI_BASE_URL` | (для РФ) ProxyAPI base URL |
 | CoursePortrait | `MOODLE_TOKEN` | Токен Moodle REST API |
 | CoursePortrait | `METRIKA_COUNTER_ID` | ID счетчика Яндекс Метрики |
 | CoursePortrait | `METRIKA_OAUTH_TOKEN` | OAuth-токен Яндекс Метрики |

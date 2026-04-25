@@ -1,6 +1,6 @@
 # TaskGenerator
 
-Микросервис генерации и управления банком учебных заданий. Преподаватель генерирует задания через LLM (GPT-4o-mini) по всем концептам курса, проверяет и одобряет их. Студенты получают задания из готового банка без вызова LLM — выбор основан на адаптивной сложности через BKT.
+Микросервис генерации и управления банком учебных заданий. Преподаватель генерирует задания через LLM (GPT-4o-mini) **с опорой на реальные материалы курса** (RAG через AIAssist), проверяет и одобряет их. Студенты получают задания из готового банка без вызова LLM — выбор основан на адаптивной сложности через BKT. При первой ошибке студент видит подсказку и получает вторую попытку.
 
 ---
 
@@ -54,7 +54,9 @@ docker compose up -d --build
 | Переменная | По умолчанию | Описание |
 |---|---|---|
 | `OPENAI_API_KEY` | — | Ключ OpenAI API (обязателен) |
+| `OPENAI_BASE_URL` | — | Override base URL (для ProxyAPI / РФ) |
 | `ADAPTIVE_URL` | `http://adaptive-service:8002` | Адрес AdaptiveService |
+| `AIASSIST_URL` | `http://ai-assistant:8003` | Адрес AIAssist для RAG-контекста |
 | `DATABASE_URL` | `postgresql+asyncpg://tasks:tasks@tasks-postgres:5432/tasks` | БД PostgreSQL |
 | `TASKS_PORT` | `8004` | Порт сервиса |
 
@@ -67,6 +69,10 @@ docker compose up -d --build
 ### `POST /v1/admin/generate-bank`
 
 Генерация банка заданий по всем концептам курса. Концепты загружаются из AdaptiveService.
+
+**RAG-контекст:** для каждого концепта запрашивается `POST /v1/internal/search` в AIAssist с расширенным запросом `"{concept_name}. Определение, примеры, применение"`. Топ-5 фрагментов из реальных материалов курса передаются в промпт. Если AIAssist недоступен — fallback на промпт без контекста (логируется WARNING).
+
+Контекст кешируется на уровне концепта: один HTTP-запрос на концепт, не на каждый difficulty.
 
 **Запрос:**
 ```json
@@ -113,6 +119,7 @@ docker compose up -d --build
         "options": ["0 1 2", "1 2 3", "0 1 2 3"],
         "correct_index": 0,
         "correct_answer": null,
+        "hint": "Вспомни, как работает range — со скольки начинает и какое число НЕ включает.",
         "explanation": "range(3) генерирует числа 0, 1, 2"
       },
       "status": "pending_review",
@@ -225,16 +232,39 @@ docker compose up -d --build
 }
 ```
 
-**Ответ:**
+**Ответ зависит от попытки и результата:**
+
+Правильный ответ:
 ```json
 {
-  "score": 0.85,
-  "correct": true,
-  "explanation": "Правильно. range(3) генерирует последовательность 0, 1, 2."
+  "score": 0.85, "correct": true, "attempt_no": 1,
+  "can_retry": false, "hint": null,
+  "explanation": "range(3) генерирует последовательность 0, 1, 2."
 }
 ```
 
-Задание остаётся в статусе `approved` и доступно другим студентам. Факт прохождения фиксируется через `TaskAttempt`.
+Первая ошибка — показывается **подсказка** (без правильного ответа), студент может попробовать снова:
+```json
+{
+  "score": 0.2, "correct": false, "attempt_no": 1,
+  "can_retry": true,
+  "hint": "Вспомни, как работает range — со скольки начинает и какое число НЕ включает.",
+  "explanation": null
+}
+```
+
+Вторая ошибка — финал, показывается полное объяснение:
+```json
+{
+  "score": 0.3, "correct": false, "attempt_no": 2,
+  "can_retry": false, "hint": null,
+  "explanation": "range(3) генерирует последовательность 0, 1, 2."
+}
+```
+
+**Mastery обновляется только в финале цикла** (correct OR attempt_no >= MAX_ATTEMPTS=2) — нет двойного штрафа за промежуточную ошибку.
+
+Задание остаётся в статусе `approved` и доступно другим студентам. Факт прохождения фиксируется через `TaskAttempt` (с полем `attempt_no`).
 
 ---
 
@@ -282,6 +312,7 @@ docker compose up -d --build
 | `concept_id` | int | ID концепта |
 | `difficulty` | string | easy / medium / hard |
 | `score` | float | 0.0 - 1.0 |
+| `attempt_no` | int | Номер попытки в текущем цикле (1 или 2). После правильного ответа цикл сбрасывается |
 | `created_at` | datetime | Когда сделана попытка |
 
 Задание считается **пройденным** для студента если есть TaskAttempt с `score >= 0.7`.
@@ -316,3 +347,5 @@ pytest tests/ -v
 - `test_predictor.py` — BKT-обновления, пороги сложности, cold start, гибридное правило
 - `test_admin_router.py` — генерация банка, листинг, review, bulk review (mock LLM)
 - `test_student_bank_selection.py` — выборка из банка, fallback по сложности, исключение успешно пройденных, повторная выдача при неправильном ответе
+- `test_rag_context.py` — RAG-клиент к AIAssist + выбор промпта по наличию контекста
+- `test_retry_hint.py` — retry-логика, счётчик попыток в цикле, fallback hint когда в spec нет hint

@@ -29,6 +29,7 @@ curl -X POST "http://ai-assistant:8003/v1/admin/reindex-course?course_id=10"
 | `MOODLE_URL` | `http://moodle.local:8081` | URL Moodle-инстанса |
 | `MOODLE_TOKEN` | — | Токен Web Services API Moodle |
 | `OPENAI_API_KEY` | — | API-ключ OpenAI |
+| `OPENAI_BASE_URL` | — | Override base URL (для ProxyAPI / РФ) |
 | `CORS_ORIGINS` | `*` | Разрешённые CORS-источники |
 | `AI_ASSIST_PORT` | `8003` | Порт сервиса |
 
@@ -68,6 +69,34 @@ curl -X POST "http://ai-assistant:8003/v1/admin/reindex-course?course_id=10"
   "sources": [
     { "cmid": 513, "title": "Лекция №2", "type": "lesson" },
     { "cmid": 520, "title": "Логические задачи", "type": "page" }
+  ]
+}
+```
+
+### `POST /v1/internal/search`
+
+Retrieval-only endpoint для **межсервисной интеграции** (используется TaskGenerator для RAG-генерации заданий с опорой на материалы курса). LLM **не вызывается** — только kNN-поиск по pgvector.
+
+**Запрос:**
+```json
+{
+  "course_id": 10,
+  "query": "шифр Атбаш. Определение, примеры, применение",
+  "top_k": 5
+}
+```
+
+**Ответ:**
+```json
+{
+  "chunks": [
+    {
+      "text": "Шифр Атбаш — это древний шифр замены...",
+      "source_module_id": 569,
+      "source_module_name": "Лекция №4",
+      "type": "lesson",
+      "score": 0.87
+    }
   ]
 }
 ```

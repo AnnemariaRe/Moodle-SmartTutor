@@ -26,6 +26,23 @@ docker compose up -d --build
 
 ---
 
+## Сети и интеграция
+
+PostgreSQL TrackingService подключён к двум сетям:
+- `internal` — для самого `tracking-service`
+- `tracking_shared_net` — **для прямого доступа из AdaptiveService** (фильтрация уже изученного контента + LightFM implicit feedback + hit-rate аналитика)
+
+RabbitMQ дополнительно на сети `rabbitmq_shared_net` — для подписки AdaptiveService на события.
+
+Перед запуском убедитесь что внешние сети созданы:
+```bash
+docker network create tracking_shared_net
+docker network create rabbitmq_shared_net
+docker network create moodle_shared_net
+```
+
+---
+
 ## API
 
 ### `POST /v1/events`
