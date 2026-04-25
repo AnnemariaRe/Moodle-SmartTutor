@@ -60,17 +60,22 @@ async def fetch_studied_cmids(
 
 
 def _classify(rows, item_types: dict[int, str]) -> set[int]:
-    """Pure-function classifier — separated from DB calls for testability."""
-    studied: set[int] = set()
-    failed: set[int] = set()
+    """Pure-function classifier — separated from DB calls for testability.
+
+    For scored content (quiz/assign/lesson) we track the BEST observed score
+    per cmid: a single failed attempt does not block forever if a later
+    attempt passed.
+    """
+    import json
+
+    best_score: dict[int, float] = {}
+    viewed: set[int] = set()
 
     for row in rows:
         cmid = int(row["cmid"])
         et = row["event_type"]
         raw_payload = row["payload"]
-        # asyncpg may return JSONB as str or dict depending on codec; normalise
         if isinstance(raw_payload, str):
-            import json
             try:
                 payload = json.loads(raw_payload)
             except Exception:
@@ -81,15 +86,21 @@ def _classify(rows, item_types: dict[int, str]) -> set[int]:
         if et in _SCORED_EVENTS:
             score = float(payload.get("score") or 0)
             max_score = float(payload.get("max_score") or 1) or 1
-            if score / max_score >= PASS_THRESHOLD:
-                studied.add(cmid)
-            else:
-                failed.add(cmid)
+            ratio = score / max_score
+            best_score[cmid] = max(best_score.get(cmid, 0.0), ratio)
         elif et == "lesson_completed":
-            studied.add(cmid)
+            num_q = int(payload.get("num_questions") or 0)
+            num_c = int(payload.get("num_correct") or 0)
+            if num_q == 0:
+                # Lesson without questions — completion alone is success
+                ratio = 1.0
+            else:
+                ratio = num_c / num_q
+            best_score[cmid] = max(best_score.get(cmid, 0.0), ratio)
         elif et in _VIEW_EVENTS:
             if item_types.get(cmid) in _VIEW_STUDIED_TYPES:
-                studied.add(cmid)
+                viewed.add(cmid)
 
-    # Failed quiz/assign overrides any prior viewing — student should retry
-    return studied - failed
+    studied = {cmid for cmid, s in best_score.items() if s >= PASS_THRESHOLD}
+    studied |= viewed
+    return studied
