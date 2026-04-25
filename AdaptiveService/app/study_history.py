@@ -12,7 +12,9 @@ PASS_THRESHOLD = 0.7
 
 _SCORED_EVENTS = ("quiz_attempt_submitted", "assign_submission_graded")
 _VIEW_EVENTS = ("course_module_viewed", "lesson_page_view")
-_NON_SCORED_TYPES = ("lesson", "page", "book")
+# Types where simple view = studied (no other completion signal exists).
+# `lesson` is intentionally absent: it's "studied" only via `lesson_completed`.
+_VIEW_STUDIED_TYPES = ("page", "book")
 
 
 async def fetch_studied_cmids(
@@ -25,7 +27,8 @@ async def fetch_studied_cmids(
     Rules:
     - Scored event (quiz/assign) with score/max_score >= 0.7 → studied
     - lesson_completed event → studied
-    - course_module_viewed / lesson_page_view for non-scored content (lesson/page/book) → studied
+    - course_module_viewed / lesson_page_view for page/book → studied (no other signal)
+    - lesson view alone (no lesson_completed) → NOT studied (student saw but didn't finish)
     - Failed scored attempts (< 0.7) → NOT studied (eligible for retry)
 
     On any DB failure returns empty set so recommendations still work.
@@ -85,7 +88,7 @@ def _classify(rows, item_types: dict[int, str]) -> set[int]:
         elif et == "lesson_completed":
             studied.add(cmid)
         elif et in _VIEW_EVENTS:
-            if item_types.get(cmid) in _NON_SCORED_TYPES:
+            if item_types.get(cmid) in _VIEW_STUDIED_TYPES:
                 studied.add(cmid)
 
     # Failed quiz/assign overrides any prior viewing — student should retry

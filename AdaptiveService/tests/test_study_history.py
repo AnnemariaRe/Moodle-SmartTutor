@@ -27,9 +27,30 @@ def test_failed_quiz_overrides_prior_view():
     assert _classify(rows, item_types={514: "quiz"}) == set()
 
 
-def test_lesson_view_counts_as_studied():
+def test_lesson_view_alone_is_not_studied():
+    """Opening a lesson without completing it doesn't make it 'studied' —
+    student should be able to come back and finish it."""
     rows = [_row(513, "course_module_viewed")]
+    assert _classify(rows, item_types={513: "lesson"}) == set()
+
+
+def test_lesson_with_completion_is_studied():
+    rows = [
+        _row(513, "course_module_viewed"),
+        _row(513, "lesson_completed"),
+    ]
     assert _classify(rows, item_types={513: "lesson"}) == {513}
+
+
+def test_page_view_counts_as_studied():
+    """For page/book there's no completion event — a view counts."""
+    rows = [_row(520, "course_module_viewed")]
+    assert _classify(rows, item_types={520: "page"}) == {520}
+
+
+def test_book_view_counts_as_studied():
+    rows = [_row(521, "course_module_viewed")]
+    assert _classify(rows, item_types={521: "book"}) == {521}
 
 
 def test_quiz_view_alone_is_not_studied():
