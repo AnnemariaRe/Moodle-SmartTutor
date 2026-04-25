@@ -84,6 +84,24 @@ def test_lesson_completed_takes_best_of_multiple_attempts():
     assert _classify(rows, item_types={513: "lesson"}) == {513}
 
 
+def test_lesson_completed_trusts_high_score_percent():
+    """Moodle's score_percent (e.g. with retries/partial credit) wins over raw num_correct."""
+    rows = [_row(513, "lesson_completed", {
+        "num_questions": 20, "num_correct": 13, "score_percent": 100
+    })]
+    # max(13/20=0.65, 100/100=1.0) = 1.0 ≥ threshold → studied
+    assert _classify(rows, item_types={513: "lesson"}) == {513}
+
+
+def test_lesson_completed_low_both_signals_not_studied():
+    """When both num_correct and score_percent indicate failure, still not studied."""
+    rows = [_row(537, "lesson_completed", {
+        "num_questions": 4, "num_correct": 1, "score_percent": 0
+    })]
+    # max(0.25, 0) = 0.25 < threshold → not studied
+    assert _classify(rows, item_types={537: "lesson"}) == set()
+
+
 def test_quiz_takes_best_of_multiple_attempts():
     """First failed, second passed → studied."""
     rows = [

@@ -91,11 +91,17 @@ def _classify(rows, item_types: dict[int, str]) -> set[int]:
         elif et == "lesson_completed":
             num_q = int(payload.get("num_questions") or 0)
             num_c = int(payload.get("num_correct") or 0)
+            score_pct = float(payload.get("score_percent") or 0)
+
             if num_q == 0:
-                # Lesson without questions — completion alone is success
-                ratio = 1.0
+                # Lesson with no questions — completion alone is success
+                # (use score_percent if reported, else 1.0)
+                ratio = score_pct / 100.0 if score_pct else 1.0
             else:
-                ratio = num_c / num_q
+                # Take the better of two signals: Moodle's final grade vs raw correctness.
+                # Moodle's grading rules sometimes give credit beyond simple num_correct/num_q
+                # (partial credit, retries, etc.) — we trust Moodle's score_percent if higher.
+                ratio = max(num_c / num_q, score_pct / 100.0)
             best_score[cmid] = max(best_score.get(cmid, 0.0), ratio)
         elif et in _VIEW_EVENTS:
             if item_types.get(cmid) in _VIEW_STUDIED_TYPES:
