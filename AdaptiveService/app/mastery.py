@@ -167,8 +167,8 @@ async def _update_mastery(
         # Placement test: set mastery directly from score (no EMA)
         new_mastery = round(min(1.0, rel_score * weight), 4)
     else:
-        # Discrete target by performance band: 0.8 / 0.5 / 0.2
-        target = 0.8 if rel_score >= 0.8 else (0.5 if rel_score >= 0.5 else 0.2)
+        # Continuous target: mastery asymptotically follows rel_score.
+        target = rel_score
         if old == 0.0:
             # First evidence — adopt target directly so a strong first attempt
             # doesn't get diluted to half by EMA cold-start.
