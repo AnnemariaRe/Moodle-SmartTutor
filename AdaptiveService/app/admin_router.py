@@ -390,13 +390,6 @@ async def recommendations_stats(
     window_minutes: int = 30,
     db: AsyncSession = Depends(get_db),
 ):
-    """Hit-rate analytics for /v1/recommendations.
-
-    For each logged recommendation, check whether the student opened ANY
-    recommended cmid within `window_minutes` after the recommendation was shown.
-    Hit rate = hits / total_logged.
-    Requires TRACKING_DB_URL to query events.
-    """
     import json as _json
     import os as _os
     from datetime import timedelta

@@ -1,11 +1,10 @@
 """Minimal tests for the retry/hint flow in check-answer endpoint."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from app.models import TaskAttempt
 from app.router import FALLBACK_HINT, MAX_ATTEMPTS, _count_attempts_in_current_cycle
 
 

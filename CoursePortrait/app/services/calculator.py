@@ -26,7 +26,6 @@ class MetricsCalculator:
             watch_percent = module.get("watchPercent")
             dropout_rate = module.get("dropoutRate", 0.0)
             pause_count = module.get("pauseCount", 0)
-            step = module.get("step", 1)
             module_type = module.get("moduleType", "unknown")
             
             has_video_metrics = watch_percent is not None and watch_percent > 0

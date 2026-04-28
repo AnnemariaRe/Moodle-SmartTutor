@@ -11,11 +11,10 @@ except ImportError:
     ort = None
 
 try:
-    import xgboost as xgb
+    import xgboost  # noqa: F401  # required for unpickling xgboost models
     XGBOOST_AVAILABLE = True
 except ImportError:
     XGBOOST_AVAILABLE = False
-    xgb = None
 
 logger = logging.getLogger(__name__)
 

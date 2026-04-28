@@ -119,8 +119,6 @@ def prepare_kdd_dataset(input_path: str, output_file: str, max_enrollments: int 
 
             total_events = len(events)
             video_events = (events == 'video').sum()
-            problem_events = (events == 'problem').sum()
-            access_events = (events == 'access').sum()
 
             if video_events > 0:
                 # If there are video events, use their proportion

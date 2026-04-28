@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
         logger.warning(f"DB initialization error (may be expected): {e}")
     
     try:
-        predictor = get_predictor()
+        get_predictor()
         logger.info("ML models loaded")
     except Exception as e:
         logger.warning(f"Failed to load ML models: {e}")

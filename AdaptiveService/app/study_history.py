@@ -23,15 +23,6 @@ async def fetch_studied_cmids(
     item_types: dict[int, str],
 ) -> set[int]:
     """Return cmids the student has completed and shouldn't be recommended again.
-
-    Rules:
-    - Scored event (quiz/assign) with score/max_score >= 0.7 → studied
-    - lesson_completed event → studied
-    - course_module_viewed / lesson_page_view for page/book → studied (no other signal)
-    - lesson view alone (no lesson_completed) → NOT studied (student saw but didn't finish)
-    - Failed scored attempts (< 0.7) → NOT studied (eligible for retry)
-
-    On any DB failure returns empty set so recommendations still work.
     """
     if not TRACKING_DB_URL:
         return set()

@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import xgboost as xgb
 import os
-from pathlib import Path
 import pickle
 
 # Try importing ONNX converters
@@ -14,14 +13,19 @@ except ImportError:
     ONNX_AVAILABLE = False
     print("Warning: skl2onnx not available, models will be saved as pickle")
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-os.makedirs(BASE_DIR / "models", exist_ok=True)
-os.makedirs(BASE_DIR / "datasets", exist_ok=True)
+try:
+    KAGGLE_AVAILABLE = True
+except ImportError:
+    KAGGLE_AVAILABLE = False
+    print("Warning: kagglehub not available, will use local datasets only")
+
+os.makedirs("models", exist_ok=True)
+os.makedirs("datasets", exist_ok=True)
 
 
 def prepare_mooc_data(file_path: str = None, auto_download: bool = True) -> pd.DataFrame:
     if file_path is None:
-        file_path = str(BASE_DIR / "datasets/kddcup_train_log.csv")
+        file_path = "datasets/kddcup_train_log.csv"
 
     if file_path and os.path.exists(file_path):
         print(f"Loading data from {file_path}...")
@@ -44,20 +48,14 @@ def prepare_mooc_data(file_path: str = None, auto_download: bool = True) -> pd.D
     else:
         raise FileNotFoundError(f"File {file_path} not found")
 
-    if 'difficulty' not in df.columns:
-        # Composite difficulty score from duration, event activity and dropout.
-        # Percentile-rank duration within the dataset (longer = harder).
-        dur_rank = df['durationMs'].rank(pct=True)
-        evt_col = df['event_count'] if 'event_count' in df.columns else pd.Series(1, index=df.index)
-        evt_rank = evt_col.rank(pct=True)
-        drop_val = df['dropout'].fillna(0)
-
-        score = 0.5 * dur_rank + 0.3 * (1.0 - evt_rank) + 0.2 * drop_val
+    if 'difficulty' not in df.columns and 'watchPercent' in df.columns:
         df['difficulty'] = pd.cut(
-            score,
-            bins=[-0.01, 0.33, 0.66, 1.01],
-            labels=[0, 1, 2]  # 0=easy, 1=medium, 2=hard
+            df['watchPercent'],
+            bins=[0, 0.3, 0.7, 1.0],
+            labels=[2, 1, 0]  # 2=hard, 1=medium, 0=easy
         ).astype(int)
+    elif 'difficulty' not in df.columns:
+        df['difficulty'] = df['dropout'].map({0: 0, 1: 2})  # 0=easy, 2=hard
 
     return df
 
@@ -72,7 +70,6 @@ def _plot_evaluation(model, X_test, y_test, y_pred, y_prob,
         import seaborn as sns
         from sklearn.metrics import roc_curve, precision_recall_curve
     except ImportError:
-        print("  (matplotlib/seaborn не установлены, графики пропущены)")
         return
 
     sns.set_theme(style="whitegrid", palette="muted", font_scale=1.1)
@@ -134,7 +131,7 @@ def _plot_evaluation(model, X_test, y_test, y_pred, y_prob,
     # ── 4. Feature importance ────────────────────────────────────────────────
     ax = axes[1, 1]
     importances = model.feature_importances_
-    names = ["duration\n(сек)", "watch\nPercent", "event\ncount"]
+    names = ["duration\n(сек)", "watch\nPercent", "step\n(порядок)"]
     colors = ["#4c78a8", "#f58518", "#54a24b"]
     bars = ax.barh(names, importances, color=colors, edgecolor="white", height=0.5)
     ax.set_xlabel("Feature Importance (gain)")
@@ -155,143 +152,16 @@ def _plot_evaluation(model, X_test, y_test, y_pred, y_prob,
     fig.text(0.5, -0.01, metrics_text, ha="center", fontsize=9, color="#555")
 
     plt.tight_layout()
-    out_path = str(BASE_DIR / "models/dropout_eval.png")
+    out_path = "models/dropout_eval.png"
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"  📊 Графики сохранены: {out_path}")
-
-
-def _plot_difficulty_evaluation(model, X_test, y_test, y_pred,
-                                accuracy, f1_weighted, feature_cols, y_full):
-    try:
-        import matplotlib
-        matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
-        import seaborn as sns
-        from sklearn.metrics import confusion_matrix, f1_score, roc_auc_score, roc_curve
-        from sklearn.preprocessing import label_binarize
-    except ImportError:
-        print("  (matplotlib/seaborn не установлены, графики пропущены)")
-        return
-
-    class_names = ["Easy (0)", "Medium (1)", "Hard (2)"]
-    colors_class = ["#54a24b", "#f58518", "#e45756"]
-
-    # OvR AUC
-    y_prob = model.predict_proba(X_test)
-    classes = sorted(y_test.unique())
-    y_test_bin = label_binarize(y_test, classes=classes)
-    try:
-        macro_auc = roc_auc_score(y_test_bin, y_prob, multi_class="ovr", average="macro")
-    except ValueError:
-        macro_auc = float("nan")
-
-    print(f"  Difficulty ROC-AUC (macro OvR): {macro_auc:.3f}")
-
-    sns.set_theme(style="whitegrid", palette="muted", font_scale=1.1)
-    fig, axes = plt.subplots(2, 3, figsize=(18, 10))
-    fig.suptitle("Difficulty Predictor — Evaluation", fontsize=15, fontweight="bold", y=1.01)
-
-    # ── 1. ROC curves (OvR) ─────────────────────────────────────────────────
-    ax = axes[0, 0]
-    for i, cls in enumerate(classes):
-        if y_test_bin.shape[1] > i:
-            fpr, tpr, _ = roc_curve(y_test_bin[:, i], y_prob[:, i])
-            try:
-                cls_auc = roc_auc_score(y_test_bin[:, i], y_prob[:, i])
-            except ValueError:
-                cls_auc = 0.0
-            ax.plot(fpr, tpr, color=colors_class[i], lw=2,
-                    label=f"{class_names[i]} (AUC={cls_auc:.3f})")
-    ax.plot([0, 1], [0, 1], "--", color="#bbb", lw=1)
-    ax.set_xlabel("False Positive Rate")
-    ax.set_ylabel("True Positive Rate")
-    ax.set_title(f"ROC Curves OvR (macro AUC={macro_auc:.3f})")
-    ax.legend(loc="lower right", fontsize=9)
-    ax.grid(False)
-
-    # ── 2. Confusion matrix ─────────────────────────────────────────────────
-    ax = axes[0, 1]
-    cm = confusion_matrix(y_test, y_pred)
-    sns.heatmap(
-        cm, annot=True, fmt="d", cmap="YlOrRd",
-        xticklabels=class_names, yticklabels=class_names,
-        linewidths=0.5, linecolor="#ddd", ax=ax,
-        annot_kws={"size": 14, "weight": "bold"},
-    )
-    ax.set_xlabel("Предсказание")
-    ax.set_ylabel("Факт")
-    ax.set_title("Confusion Matrix (тестовая выборка)")
-
-    # ── 3. Per-class F1 ─────────────────────────────────────────────────────
-    ax = axes[0, 2]
-    per_class_f1 = f1_score(y_test, y_pred, average=None, zero_division=0)
-    bars = ax.bar(class_names, per_class_f1, color=colors_class, edgecolor="white", width=0.5)
-    ax.set_ylabel("F1 Score")
-    ax.set_title("F1 по классам")
-    ax.set_ylim(0, 1.05)
-    for bar, val in zip(bars, per_class_f1):
-        ax.text(bar.get_x() + bar.get_width() / 2, val + 0.02,
-                f"{val:.3f}", ha="center", fontsize=11)
-
-    # ── 4. Class distribution ────────────────────────────────────────────────
-    ax = axes[1, 0]
-    counts = y_full.value_counts().sort_index()
-    ax.bar([class_names[i] for i in counts.index], counts.values,
-           color=colors_class, edgecolor="white", width=0.5)
-    ax.set_ylabel("Количество")
-    ax.set_title("Распределение классов (весь датасет)")
-    for i, (_, val) in enumerate(counts.items()):
-        ax.text(i, val + max(counts) * 0.02, str(val), ha="center", fontsize=11)
-
-    # ── 5. Feature importance ────────────────────────────────────────────────
-    ax = axes[1, 1]
-    importances = model.feature_importances_
-    names = ["duration\n(сек)", "watch\nPercent", "event\ncount"]
-    colors_feat = ["#4c78a8", "#f58518", "#54a24b"]
-    bars = ax.barh(names, importances, color=colors_feat, edgecolor="white", height=0.5)
-    ax.set_xlabel("Feature Importance (gain)")
-    ax.set_title("Важность признаков")
-    ax.set_xlim(0, max(importances) * 1.25)
-    for bar, val in zip(bars, importances):
-        ax.text(val + 0.005, bar.get_y() + bar.get_height() / 2,
-                f"{val:.3f}", va="center", fontsize=11)
-
-    # ── 6. Predicted probability distributions ───────────────────────────────
-    ax = axes[1, 2]
-    for i, cls in enumerate(classes):
-        mask = y_test == cls
-        if mask.any():
-            ax.hist(y_prob[mask, i], bins=20, alpha=0.5, color=colors_class[i],
-                    label=class_names[i], edgecolor="white")
-    ax.set_xlabel("P(class)")
-    ax.set_ylabel("Количество")
-    ax.set_title("Распределение вероятностей (тест)")
-    ax.legend(fontsize=9)
-
-    # ── Metrics summary ──────────────────────────────────────────────────────
-    metrics_text = (
-        f"Train: {len(y_full) - len(y_test)}   Test: {len(y_test)}   "
-        f"Accuracy: {accuracy:.3f}   F1 (weighted): {f1_weighted:.3f}   "
-        f"ROC-AUC (macro): {macro_auc:.3f}"
-    )
-    fig.text(0.5, -0.01, metrics_text, ha="center", fontsize=9, color="#555")
-
-    plt.tight_layout()
-    out_path = str(BASE_DIR / "models/difficulty_eval.png")
-    fig.savefig(out_path, dpi=150, bbox_inches="tight")
-    plt.close(fig)
-    print(f"  Difficulty evaluation saved: {out_path}")
 
 
 def train_models(
     mooc_file: str = "datasets/kddcup_train_log.csv",
     auto_download: bool = True
 ):
-    """
-    Train XGBoost models and export to ONNX format using MOOC data.
-    Automatically downloads the KDD Cup 2015 dataset from Kaggle if the local file is not found.
-    """
     print("Training ML models for Course Portrait Service")
     print()
 
@@ -308,9 +178,13 @@ def train_models(
         print(f"Large dataset ({len(df)} records), using 10% sample to speed up training...")
         df = df.sample(frac=0.1, random_state=42)
 
+    if len(df) < 50:
+        print(f"Warning: insufficient data for training ({len(df)} records)")
+        print("  Recommended minimum is 100-200 records for good quality")
+
     print(f"\nTotal records for training: {len(df)}")
 
-    feature_cols = ['durationMs', 'watchPercent', 'event_count']
+    feature_cols = ['durationMs', 'watchPercent', 'step']
 
     print(f"  Training features: {feature_cols}")
 
@@ -326,9 +200,8 @@ def train_models(
 
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import (
-        accuracy_score, roc_auc_score, f1_score,
+        roc_auc_score, f1_score,
         precision_score, recall_score,
-        classification_report,
     )
 
     test_size = 0.2 if len(df) >= 100 else 0.0
@@ -339,12 +212,30 @@ def train_models(
     else:
         X_train, X_test, y_train, y_test = X, X, y_dropout, y_dropout
 
+    # SMOTE: oversample minority class (dropout=1) on train set only
+    n_dropout = int(y_train.sum())
+    n_total = len(y_train)
+    try:
+        from imblearn.over_sampling import SMOTE
+        if n_dropout >= 2 and n_dropout / n_total < 0.3:
+            smote_ratio = min(0.3, n_dropout * 5 / n_total)
+            sm = SMOTE(sampling_strategy=smote_ratio, random_state=42, k_neighbors=min(5, n_dropout - 1))
+            X_train, y_train = sm.fit_resample(X_train, y_train)
+            print(f"  SMOTE: {n_dropout} → {int(y_train.sum())} dropout samples "
+                  f"(ratio {y_train.mean():.1%})")
+        else:
+            print(f"  SMOTE пропущен (дропаутов: {n_dropout}, доля: {n_dropout/n_total:.1%})")
+    except ImportError:
+        print("  SMOTE пропущен (imbalanced-learn не установлен)")
+
+    # scale_pos_weight: штраф за пропуск дропаута пропорционален дисбалансу
     n_neg = int((y_train == 0).sum())
     n_pos = int((y_train == 1).sum())
     scale_pos_weight = round(n_neg / n_pos, 1) if n_pos > 0 else 1.0
     print(f"  scale_pos_weight = {scale_pos_weight} (neg={n_neg}, pos={n_pos})")
 
     models = {}
+    print("\nTraining dropout prediction model...")
     dropout_model = xgb.XGBClassifier(
         objective='binary:logistic',
         n_estimators=100,
@@ -376,14 +267,6 @@ def train_models(
 
     # 2. Difficulty Predictor
     print("\nTraining difficulty prediction model...")
-
-    if test_size > 0:
-        Xd_train, Xd_test, yd_train, yd_test = train_test_split(
-            X, y_difficulty, test_size=test_size, random_state=42, stratify=y_difficulty
-        )
-    else:
-        Xd_train, Xd_test, yd_train, yd_test = X, X, y_difficulty, y_difficulty
-
     difficulty_model = xgb.XGBClassifier(
         objective='multi:softprob',
         n_estimators=100,
@@ -392,21 +275,9 @@ def train_models(
         num_class=3,
         random_state=42
     )
-    difficulty_model.fit(Xd_train, yd_train)
+    difficulty_model.fit(X, y_difficulty)
     models['difficulty'] = difficulty_model
-
-    yd_pred = difficulty_model.predict(Xd_test)
-    diff_acc = accuracy_score(yd_test, yd_pred)
-    diff_f1 = f1_score(yd_test, yd_pred, average='weighted', zero_division=0)
-    print(f"  Difficulty test accuracy: {diff_acc:.2%}")
-    print(f"  Difficulty test F1 (weighted): {diff_f1:.3f}")
-    print(f"  Distribution: {y_difficulty.value_counts().sort_index().to_dict()}")
-    print(f"  Classification report:\n{classification_report(yd_test, yd_pred, target_names=['easy', 'medium', 'hard'], zero_division=0)}")
-
-    _plot_difficulty_evaluation(
-        difficulty_model, Xd_test, yd_test, yd_pred,
-        diff_acc, diff_f1, feature_cols, y_difficulty,
-    )
+    print(f"Difficulty model accuracy: {difficulty_model.score(X, y_difficulty):.2%}")
 
     print("\nExporting models...")
     initial_type = [('input', FloatTensorType([None, len(feature_cols)]))] if ONNX_AVAILABLE else None
@@ -420,7 +291,7 @@ def train_models(
                     initial_types=initial_type,
                     target_opset=12
                 )
-                model_path = str(BASE_DIR / f"models/{name}_predictor.onnx")
+                model_path = f"models/{name}_predictor.onnx"
                 with open(model_path, "wb") as f:
                     f.write(onnx_model.SerializeToString())
                 print(f"✓ {name} model saved to {model_path} (ONNX)")
@@ -428,7 +299,7 @@ def train_models(
             except Exception as e:
                 print(f"✗ Error exporting {name} model to ONNX: {e}")
 
-        pickle_path = str(BASE_DIR / f"models/{name}_predictor.pkl")
+        pickle_path = f"models/{name}_predictor.pkl"
         with open(pickle_path, "wb") as f:
             pickle.dump(model, f)
         if not onnx_success:
@@ -450,7 +321,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--mooc-data",
-        default=str(BASE_DIR / "datasets/kddcup_train_log.csv"),
+        default="datasets/kddcup_train_log.csv",
         help="Path to the public MOOC dataset file"
     )
 
@@ -458,5 +329,5 @@ if __name__ == "__main__":
 
     train_models(
         mooc_file=args.mooc_data,
-        auto_download=True
+        auto_download=True  # Automatically download dataset from Kaggle
     )

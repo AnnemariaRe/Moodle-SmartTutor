@@ -5,7 +5,7 @@ import json
 import numpy as np
 import pytest
 
-from app.dkt import MIN_HISTORY_STEPS, DKTPredictor, _sigmoid
+from app.dkt import DKTPredictor, _sigmoid
 
 
 class TestSigmoid:
