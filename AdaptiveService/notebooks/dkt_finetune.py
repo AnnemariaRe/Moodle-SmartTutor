@@ -299,15 +299,17 @@ def finetune(args) -> None:
     ft_model.lstm.bias_hh_l0.data.copy_(b_avg)
     print("Transferred hidden-to-hidden LSTM weights from ASSIST09")
 
-    optimizer = torch.optim.AdamW(ft_model.parameters(), lr=5e-4, weight_decay=1e-4)
+    # Light regularization — weight_decay=1e-5 (strong 1e-4 hurt val AUC by ~0.015)
+    optimizer = torch.optim.AdamW(ft_model.parameters(), lr=5e-4, weight_decay=1e-5)
+    # patience=8 to ride out natural val AUC fluctuations before halving LR
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="max", factor=0.5, patience=3, min_lr=1e-6
+        optimizer, mode="max", factor=0.5, patience=8, min_lr=1e-6
     )
     criterion = nn.BCELoss(reduction="none")
     best_auc = 0.0
     best_state = None
     best_path = MODELS_DIR / f"dkt_course_{args.course}_best.pth"
-    patience = 10
+    patience = 20
     no_improve = 0
 
     for epoch in range(args.epochs):
