@@ -285,10 +285,16 @@ def finetune(args) -> None:
     ft_model.lstm.bias_hh_l0.data.copy_(b_avg)
     print("Transferred hidden-to-hidden LSTM weights from ASSIST09")
 
-    optimizer = torch.optim.Adam(ft_model.parameters(), lr=5e-4)
+    optimizer = torch.optim.AdamW(ft_model.parameters(), lr=5e-4, weight_decay=1e-4)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode="max", factor=0.5, patience=3, min_lr=1e-6
+    )
     criterion = nn.BCELoss(reduction="none")
     best_auc = 0.0
+    best_state = None
     best_path = MODELS_DIR / f"dkt_course_{args.course}_best.pth"
+    patience = 10
+    no_improve = 0
 
     for epoch in range(args.epochs):
         ft_model.train()
@@ -309,15 +315,26 @@ def finetune(args) -> None:
 
         if len(ft_val) > 1:
             ft_auc = evaluate(ft_model, ft_val_loader, device)
+            scheduler.step(ft_auc)
             if ft_auc > best_auc:
                 best_auc = ft_auc
+                best_state = {k: v.clone() for k, v in ft_model.state_dict().items()}
                 torch.save(ft_model.state_dict(), best_path)
-            if (epoch + 1) % 5 == 0:
-                print(f"FT Epoch {epoch+1:2d}/{args.epochs}  "
-                      f"loss={total_loss/n_batches:.4f}  AUC={ft_auc:.4f}")
+                no_improve = 0
+            else:
+                no_improve += 1
+            print(f"FT Epoch {epoch+1:2d}/{args.epochs}  "
+                  f"loss={total_loss/n_batches:.4f}  AUC={ft_auc:.4f}  "
+                  f"lr={optimizer.param_groups[0]['lr']:.2e}  "
+                  f"best={best_auc:.4f}")
+            if no_improve >= patience:
+                print(f"Early stop at epoch {epoch+1} (no improvement for {patience} epochs)")
+                break
 
     print(f"\nFine-tuning done. Best AUC: {best_auc:.4f}")
-    if best_path.exists():
+    if best_state is not None:
+        ft_model.load_state_dict(best_state)
+    elif best_path.exists():
         ft_model.load_state_dict(torch.load(best_path, map_location="cpu"))
 
     print("\nExporting weights...")
