@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import pathlib
 import random
 
@@ -27,8 +28,21 @@ HIDDEN_SIZE = 128
 THRESH = 0.7
 MODELS_DIR = pathlib.Path(__file__).parent.parent / "models"
 
-ADAPTIVE_DSN = "postgresql://adaptive:adaptive@localhost:5434/adaptive"
-TRACKING_DSN = "postgresql://tracking:tracking@localhost:5435/tracking"
+
+def _to_psycopg(url: str) -> str:
+    """Strip asyncpg/psycopg driver suffix from SQLAlchemy URL for psycopg2."""
+    return url.replace("postgresql+asyncpg://", "postgresql://").replace("postgresql+psycopg://", "postgresql://")
+
+
+# Read DSNs from env (auto-detected in docker), fallback to localhost host-side ports.
+ADAPTIVE_DSN = _to_psycopg(os.getenv(
+    "ADAPTIVE_DSN",
+    os.getenv("DATABASE_URL", "postgresql://adaptive:adaptive@localhost:5434/adaptive"),
+))
+TRACKING_DSN = _to_psycopg(os.getenv(
+    "TRACKING_DSN",
+    os.getenv("TRACKING_DB_URL", "postgresql://tracking:tracking@localhost:5435/tracking"),
+))
 
 TRACKING_QUERY = """
 SELECT student_id, cmid, event_type, ts, payload
